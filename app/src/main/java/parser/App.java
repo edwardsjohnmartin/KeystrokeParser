@@ -14,26 +14,32 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 
+import org.antlr.v4.runtime.ParserRuleContext;
 import parser.antlr.PythonLexer;
 import parser.antlr.PythonParser;
 import parser.antlr.PythonParser.RootContext;
+import parser.antlr.PythonParserVisitor;
 
 public class App {
     public static void main(String[] args) throws IOException, InterruptedException {
         var run = new App();
         run.warmup();
 
-        System.out.println("\nTesting ANTLR Execution on 10000 medium trees");
-        long startTime = System.nanoTime();
-        run.testAntlr();
-        long duration = (System.nanoTime() - startTime) / 1000000;
-        System.out.println("Time taken: " + duration + " ms");
+        final String content = new String(Files.readAllBytes(Paths.get("src/main/resources/test0/1")));
+        RootContext tree = run.createTree(content);
+//        run.tree2dot(tree);
 
-        System.out.println("\nTesting Threaded ANTLR Execution on 10000 medium trees");
-        startTime = System.nanoTime();
-        run.testThreadedAntlr();
-        duration = (System.nanoTime() - startTime) / 1000000;
-        System.out.println("Threaded Time taken: " + duration + " ms\n");
+//        System.out.println("\nTesting ANTLR Execution on 10000 medium trees");
+//        long startTime = System.nanoTime();
+//        run.testAntlr();
+//        long duration = (System.nanoTime() - startTime) / 1000000;
+//        System.out.println("Time taken: " + duration + " ms");
+//
+//        System.out.println("\nTesting Threaded ANTLR Execution on 10000 medium trees");
+//        startTime = System.nanoTime();
+//        run.testThreadedAntlr();
+//        duration = (System.nanoTime() - startTime) / 1000000;
+//        System.out.println("Threaded Time taken: " + duration + " ms\n");
     }
 
     public void warmup() {
@@ -49,14 +55,30 @@ public class App {
         parser.setBuildParseTree(true);
         parser.removeErrorListeners();
 
-        /* System.out.println(tree.toStringTree(parser)); */
+        RootContext tree = parser.root();
+        PythonParserVisitor visitor = new MyVisitor();
+        visitor.visit(tree);
+
+//        System.out.println(tree.toStringTree(parser));
         return parser.root();
     }
+
+//    public void tree2dot(ParserRuleContext node) {
+//        System.out.println("Testing");
+//        System.out.println(node.getClass().toString());
+//        System.out.println(node.children.size());
+//        for (int i = 0; i < node.children.size(); i++) {
+//            System.out.println(node.getChild(i));
+//            System.out.println(node.children.get(i));
+////            this.tree2dot((ParserRuleContext)node.getChild(i));
+//        }
+//    }
 
     public void testAntlr() throws IOException {
 
         final String content = new String(Files.readAllBytes(Paths.get("src/main/resources/test0/1")));
-        for (int i = 0; i < 10000; ++i) {
+        // for (int i = 0; i < 10000; ++i) {
+        for (int i = 0; i < 1; ++i) {
             RootContext tree = createTree(content);
             FileWriter writer = new FileWriter("output/test" + UUID.randomUUID() + ".txt");
             writer.write(tree.toString());
@@ -68,7 +90,8 @@ public class App {
         ArrayList<Thread> threads = new ArrayList<>(10000);
 
         final String content = new String(Files.readAllBytes(Paths.get("src/main/resources/test0/1")));
-        for (int i = 0; i < 10000; ++i) {
+        // for (int i = 0; i < 10000; ++i) {
+        for (int i = 0; i < 1; ++i) {
 
             @SuppressWarnings("preview")
             Thread thread = Thread.startVirtualThread(() -> {
