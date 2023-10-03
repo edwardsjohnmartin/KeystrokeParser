@@ -1,0 +1,9 @@
+EventID,SubjectID,AssignmentID,CodeStateSection,EventType,SourceLocation,EditType,InsertText,DeleteText,X-Metadata,ClientTimestamp,ToolInstances,CodeStateID
+0,Student1,Assign10,task1.py,File.Edit,0.0,Insert,"x",,,1636696834375,PC;PP 1.1.10,
+1,Student1,Assign10,task1.py,X-Action,,,,,Up,1636696889501,PC;PP 1.1.10,
+2,Student1,Assign10,task1.py,File.Edit,1.0,Insert,"=",,,1636696834375,PC;PP 1.1.10,
+3,Student1,Assign10,task1.py,File.Edit,2.0,Insert,"1",,,1636696834375,PC;PP 1.1.10,
+4,Student1,Assign10,task2.py,File.Edit,0.0,Insert,"y=3",,,1636696834375,PC;PP 1.1.10,
+5,Student1,Assign10,task2.py,X-Action,,,,,Up,1636696889501,PC;PP 1.1.10,
+6,Student1,Assign10,task3.py,File.Edit,0.0,Insert,"b",,,1636696834375,PC;PP 1.1.10,
+7,Student1,Assign10,task3.py,File.Edit,0.0,Insert,"a",,,1636696834375,PC;PP 1.1.10,

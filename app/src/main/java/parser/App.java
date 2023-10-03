@@ -17,18 +17,16 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import parser.antlr.PythonLexer;
 import parser.antlr.PythonParser;
 import parser.antlr.PythonParser.RootContext;
-import tech.tablesaw.api.ColumnType;
-import tech.tablesaw.api.Table;
-import tech.tablesaw.io.csv.CsvReadOptions;
 import parser.antlr.PythonParserVisitor;
 
 public class App {
     public static void main(String[] args) throws IOException {
-        var run = new App();
-        // run.warmup();
-        run.testJigsaw();
+        Tablesaw ts = new Tablesaw();
+        ts.test();
 
         /*
+         * App run = new App();
+         * run.warmup();
          * final String content = new
          * String(Files.readAllBytes(Paths.get("src/main/resources/1")));
          * RootContext tree = run.createTree(content);
@@ -47,11 +45,6 @@ public class App {
          * duration = (System.nanoTime() - startTime) / 1000000;
          * System.out.println("Threaded Time taken: " + duration + " ms\n");
          */
-    }
-
-    public void testJigsaw() {
-        Table dataframe = Table.read().file("src/main/resources/correspondence.csv");
-        System.out.println(dataframe.print(1));
     }
 
     public void warmup() {
