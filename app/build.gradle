@@ -19,13 +19,16 @@ repositories {
 }
 
 dependencies {
-    // Use JUnit Jupiter for testing.
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1'
-
     // This dependency is used by the application.
     implementation 'com.google.guava:guava:31.1-jre'
 
     antlr 'org.antlr:antlr4:4.13.1'
+
+    // https://mvnrepository.com/artifact/tech.tablesaw/tablesaw-core
+    implementation 'tech.tablesaw:tablesaw-core:0.43.1'
+
+    // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-slf4j-impl
+    implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.20.0'
 }
 
 application {
