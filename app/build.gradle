@@ -26,6 +26,8 @@ dependencies {
     implementation 'com.google.guava:guava:31.1-jre'
 
     antlr 'org.antlr:antlr4:4.13.1'
+
+    implementation 'org.json:json:20211205'
 }
 
 application {

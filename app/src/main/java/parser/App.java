@@ -7,26 +7,73 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.UUID;
+import java.util.*;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 
-import org.antlr.v4.runtime.ParserRuleContext;
 import parser.antlr.PythonLexer;
 import parser.antlr.PythonParser;
 import parser.antlr.PythonParser.RootContext;
-import parser.antlr.PythonParserVisitor;
 
 public class App {
     public static void main(String[] args) throws IOException, InterruptedException {
         var run = new App();
         run.warmup();
 
-        final String content = new String(Files.readAllBytes(Paths.get("src/main/resources/test0/1")));
-        RootContext tree = run.createTree(content);
+//        run.tree2dot(run.createTreeFromFile("src/main/resources/test1/1.py"));
+//        run.tree2dot(run.createTreeFromFile("src/main/resources/test1/2.py"));
+//        run.tree2dot(run.createTreeFromFile("src/main/resources/test1/3.py"));
+
+        List<Node> origTrees = new ArrayList<>();
+        origTrees.add(MyVisitor.toSimpleTree(run.createTreeFromFile("src/main/resources/test1/1.py")));
+        origTrees.add(MyVisitor.toSimpleTree(run.createTreeFromFile("src/main/resources/test1/2.py")));
+        origTrees.add(MyVisitor.toSimpleTree(run.createTreeFromFile("src/main/resources/test1/3.py")));
+
+        // Set up id2node
+        Map<Integer, Node> id2node = new HashMap<>();
+        Node.Visitor v = n -> id2node.put(n.getId(), n);
+        for (Node root:origTrees) {
+            root.traverse(v);
+        }
+
+        // Test resetIds
+//        orig2.resetIds(orig1.getId()+1);
+
+        // Prune trees
+        List<Node> prunedTrees = new ArrayList<>();
+        prunedTrees.add(origTrees.get(0));
+        prunedTrees.get(0).setIsReference(true);
+        prunedTrees.add(id2node.get(42));
+        prunedTrees.get(1).setTparent(id2node.get(13));
+        prunedTrees.add(id2node.get(80));
+        prunedTrees.get(2).setTparent(id2node.get(45));
+
+        // Test reconstruction
+        List<Node> reconTrees = new ArrayList<>();
+        for (Node pruned:prunedTrees) {
+            if (pruned.isReference()) {
+                reconTrees.add(pruned);
+            } else {
+                Node ref = reconTrees.get(reconTrees.size()-1);
+                Node copy = new Node(ref);
+                copy.replace(pruned);
+                copy.resetIds(ref.getId()+1);
+                reconTrees.add(copy);
+            }
+        }
+
+        System.out.println("digraph G {");
+        for (Node root:origTrees) {
+//        for (Node root:prunedTrees) {
+//        for (Node root:reconTrees) {
+            System.out.println(root.toDot());
+        }
+        System.out.println("}");
+
+//        final String content = new String(Files.readAllBytes(Paths.get("src/main/resources/test0/1")));
+//        RootContext tree = run.createTree(content);
 //        run.tree2dot(tree);
 
 //        System.out.println("\nTesting ANTLR Execution on 10000 medium trees");
@@ -46,6 +93,10 @@ public class App {
         createTree("x: int = 1");
     }
 
+    public RootContext createTreeFromFile(String fn) throws IOException {
+        final String content = new String(Files.readAllBytes(Paths.get(fn)));
+        return createTree(content);
+    }
     public RootContext createTree(String input) {
         CharStream in = CharStreams.fromString(input);
         PythonLexer lexer = new PythonLexer(in);
@@ -55,23 +106,12 @@ public class App {
         parser.setBuildParseTree(true);
         parser.removeErrorListeners();
 
-        RootContext tree = parser.root();
-        PythonParserVisitor visitor = new MyVisitor();
-        visitor.visit(tree);
-
-//        System.out.println(tree.toStringTree(parser));
         return parser.root();
     }
 
-//    public void tree2dot(ParserRuleContext node) {
-//        System.out.println("Testing");
-//        System.out.println(node.getClass().toString());
-//        System.out.println(node.children.size());
-//        for (int i = 0; i < node.children.size(); i++) {
-//            System.out.println(node.getChild(i));
-//            System.out.println(node.children.get(i));
-////            this.tree2dot((ParserRuleContext)node.getChild(i));
-//        }
+//    public void tree2dot(RootContext tree) {
+//        MyVisitor visitor = new MyVisitor();
+//        visitor.toSimpleTree(tree);
 //    }
 
     public void testAntlr() throws IOException {
