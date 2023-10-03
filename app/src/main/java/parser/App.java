@@ -19,6 +19,8 @@ import parser.antlr.PythonParser.RootContext;
 
 public class App {
     public static void main(String[] args) throws IOException, InterruptedException {
+        new Tablesaw().test();
+
         var run = new App();
         run.warmup();
 

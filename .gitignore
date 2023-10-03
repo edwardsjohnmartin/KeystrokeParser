@@ -1,2 +1,8 @@
+// local files
 .DS_Store
+.vscode
+.gradle
+
+// build files
+app/bin
 app/build
