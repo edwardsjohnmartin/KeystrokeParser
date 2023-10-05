@@ -6,6 +6,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * IDs are set depth-first from left to right (in order of children).
@@ -22,8 +23,8 @@ public class Node {
 
     private int id;
     private final String label;
-    private final int startIndex;
-    private final int length;
+    private int startIndex;
+    private int length;
     private final List<Node> children;
     private Node parent = null;
     private Node tparent = null;
@@ -58,6 +59,21 @@ public class Node {
         }
     }
 
+    public boolean isEqual(Node node) {
+        if (this == node) return true;
+        boolean e = (id == node.id && startIndex == node.startIndex && length == node.length &&
+                tparentId == node.tparentId && Objects.equals(label, node.label));
+        if (!e) {
+            return false;
+        }
+        for (int i = 0; i < children.size(); ++i) {
+            if (!children.get(i).isEqual(node.children.get(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public void resetIds(int startId) {
         int id = startId;
         resetIdsImpl(id);
@@ -67,6 +83,7 @@ public class Node {
         for (Node child:children) {
             id=child.resetIdsImpl(id);
         }
+        this.tparentId = this.id;
         this.id = id;
         return id+1;
     }
@@ -83,10 +100,37 @@ public class Node {
             Node child = children.get(i);
             if (replacement.tparentId == child.id) {
                 children.set(i, replacement);
+                replacement.parent = this;
+                if (child.startIndex != replacement.startIndex) {
+                    throw new RuntimeException("Start indices unexpectedly different.");
+                }
+
+                //  Update ranges
+                int add = replacement.length - child.length;
+                replacement.parent.updateRanges(add, replacement);
                 return;
             } else {
                 child.replaceImpl(replacement);
             }
+        }
+    }
+
+    private void updateRanges(int add, Node sourceChild) {
+        // The sourceChild is the child that is propagating the change up to this.
+        this.length += add;
+        int i = children.indexOf(sourceChild);
+        for (int j = i+1; j < children.size(); ++j) {
+            children.get(j).updateRangesDown(add);
+        }
+        if (parent != null) {
+            parent.updateRanges(add, this);
+        }
+    }
+
+    private void updateRangesDown(int add) {
+        this.startIndex += add;
+        for (Node child:this.children) {
+            child.updateRangesDown(add);
         }
     }
 
@@ -169,18 +213,23 @@ public class Node {
     //-------------------------------------------------------
 
     public String toDot() {
+        return toDot("n");
+    }
+
+    public String toDot(String nodePrefix) {
         StringBuffer buf = new StringBuffer();
-        nodeToDot(buf);
+        nodeToDot(buf, nodePrefix);
         return buf.toString();
     }
-    private void nodeToDot(StringBuffer buf) {
-        buf.append(String.format("n%d [label = \"%s\\n%d, %d-%d\"];\n", id, label, id, startIndex, startIndex+length));
+    private void nodeToDot(StringBuffer buf, String nodePrefix) {
+        buf.append(String.format("%s%d [label = \"%s\\n%d, %d-%d\\ntp=%d\"];\n",
+                nodePrefix, id, label, id, startIndex, startIndex+length, tparentId));
 //        if (this.tparent != null) {
 //            buf.append(String.format("n%s->n%s [style=dashed]\n", this.id, this.tparent.id));
 //        }
         for (Node child:children) {
-            child.nodeToDot(buf);
-            buf.append(String.format("n%s->n%s;\n", id, child.id));
+            child.nodeToDot(buf, nodePrefix);
+            buf.append(String.format("%s%s->%s%s;\n", nodePrefix, id, nodePrefix, child.id));
         }
     }
 

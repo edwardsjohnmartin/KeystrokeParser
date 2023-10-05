@@ -19,7 +19,7 @@ import parser.antlr.PythonParser.RootContext;
 
 public class App {
     public static void main(String[] args) throws IOException, InterruptedException {
-        new Tablesaw().test();
+//        new Tablesaw().test();
 
         var run = new App();
         run.warmup();
@@ -29,9 +29,10 @@ public class App {
 //        run.tree2dot(run.createTreeFromFile("src/main/resources/test1/3.py"));
 
         List<Node> origTrees = new ArrayList<>();
-        origTrees.add(MyVisitor.toSimpleTree(run.createTreeFromFile("src/main/resources/test1/1.py")));
-        origTrees.add(MyVisitor.toSimpleTree(run.createTreeFromFile("src/main/resources/test1/2.py")));
+//        origTrees.add(MyVisitor.toSimpleTree(run.createTreeFromFile("src/main/resources/test1/1.py")));
+//        origTrees.add(MyVisitor.toSimpleTree(run.createTreeFromFile("src/main/resources/test1/2.py")));
         origTrees.add(MyVisitor.toSimpleTree(run.createTreeFromFile("src/main/resources/test1/3.py")));
+        origTrees.add(MyVisitor.toSimpleTree(run.createTreeFromFile("src/main/resources/test1/4.py")));
 
         // Set up id2node
         Map<Integer, Node> id2node = new HashMap<>();
@@ -47,12 +48,15 @@ public class App {
         List<Node> prunedTrees = new ArrayList<>();
         prunedTrees.add(origTrees.get(0));
         prunedTrees.get(0).setIsReference(true);
-        prunedTrees.add(id2node.get(42));
-        prunedTrees.get(1).setTparent(id2node.get(13));
-        prunedTrees.add(id2node.get(80));
-        prunedTrees.get(2).setTparent(id2node.get(45));
+//        prunedTrees.add(id2node.get(42));
+//        prunedTrees.get(1).setTparent(id2node.get(13));
+//        prunedTrees.add(id2node.get(80));
+//        prunedTrees.get(2).setTparent(id2node.get(45));
 
-        // Test reconstruction
+        prunedTrees.add(id2node.get(35));
+        prunedTrees.get(1).setTparent(id2node.get(0));
+
+        // Reconstruct from pruned trees
         List<Node> reconTrees = new ArrayList<>();
         for (Node pruned:prunedTrees) {
             if (pruned.isReference()) {
@@ -66,10 +70,20 @@ public class App {
             }
         }
 
+        for (int i = 0; i < origTrees.size(); ++i) {
+            if (!origTrees.get(i).isEqual(reconTrees.get(i))) {
+                System.out.println("digraph G {");
+                System.out.println(origTrees.get(i).toDot("o"));
+                System.out.println(reconTrees.get(i).toDot("r"));
+                System.out.println("}");
+                throw new RuntimeException("Reconstructed tree at index " + i + " is incorrect.");
+            }
+        }
+
         System.out.println("digraph G {");
-        for (Node root:origTrees) {
+//        for (Node root:origTrees) {
 //        for (Node root:prunedTrees) {
-//        for (Node root:reconTrees) {
+        for (Node root:reconTrees) {
             System.out.println(root.toDot());
         }
         System.out.println("}");
