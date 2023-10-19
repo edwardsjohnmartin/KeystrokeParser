@@ -10,38 +10,67 @@ import java.util.List;
 public class MyVisitor {
 
     public static Node toSimpleTree(PythonParser.RootContext ctx) {
-//        final int id = nextId();
+        // final int id = nextId();
         final String label = ctx.getClass().getSimpleName();
         final int startIndex = ctx.getStart().getStartIndex();
-        final int length = ctx.getStop().getStopIndex() - startIndex + 1;
+        final int stopIndex = ctx.getStop().getStopIndex();
+        final int length = stopIndex - startIndex + 1;
 
-        Node n = toSimpleTreeImpl(ctx, label, startIndex, length);
+        // skip EOFs
+        if ("<EOF>".equals(ctx.getText())) {
+            return null;
+        }
+
+        Node n = toSimpleTreeImpl(ctx, label, startIndex, stopIndex, length);
         n.setIsReference(true);
         return n;
     }
 
-    private static Node toSimpleTreeImpl(ParserRuleContext tree, String parentLabel, int parentStartIndex, int parentLength) {
+    private static Node toSimpleTreeImpl(ParserRuleContext tree,
+            String parentLabel,
+            int parentStartIndex,
+            int parentStopIndex,
+            int parentLength) {
+
         List<Node> children = new ArrayList<>();
+
         for (int i = 0; i < tree.getChildCount(); i++) {
-            Node childNode;
-            String childLabel;
-            int childStartIndex, childLength;
 
             if (tree.getChild(i) instanceof ParserRuleContext) {
-                ParserRuleContext child = (ParserRuleContext)tree.getChild(i);
-                childLabel = child.getClass().getSimpleName();
-                childStartIndex = child.getStart().getStartIndex();
-                childLength = child.getStop().getStopIndex() - childStartIndex + 1;
+                ParserRuleContext child = (ParserRuleContext) tree.getChild(i);
+                final String childLabel = child.getClass().getSimpleName();
+                final int childStartIndex = child.getStart().getStartIndex();
+                final int childStopIndex = child.getStop().getStopIndex();
+                final int childLength = childStopIndex - childStartIndex + 1;
 
-                childNode = toSimpleTreeImpl(child, childLabel, childStartIndex, childLength);
+                final Node childNode = toSimpleTreeImpl(child, childLabel, childStartIndex, childStopIndex,
+                        childLength);
+                children.add(childNode);
             } else {
                 TerminalNode child = (TerminalNode) tree.getChild(i);
-                childLabel = child.toString();
-                childStartIndex = ((ParserRuleContext) child.getParent()).getStart().getStartIndex();
-                childNode = new Node(childLabel, childStartIndex, childLabel.length(), new ArrayList<>());
+
+                // skip EOFs
+                if ("<EOF>".equals(child.toString()) || "".equals(child.toString())) {
+                    continue;
+                }
+
+                final String childLabel = "Terminal";
+                // final int childStartIndex = ((ParserRuleContext)
+                // child.getParent()).getStart().getStartIndex();
+                int childStartIndex = child.getSymbol().getStartIndex();
+                int childStopIndex = child.getSymbol().getStopIndex();
+
+                // hack? TODO: investigate
+                if (childStartIndex > childStopIndex) {
+                    childStartIndex = childStopIndex;
+                }
+
+                final Node childNode = new Node(childLabel, childStartIndex, childStopIndex, child.toString().length(),
+                        new ArrayList<>(), child.toString());
+                children.add(childNode);
             }
-            children.add(childNode);
         }
-        return new Node(parentLabel, parentStartIndex, parentLength, children);
+
+        return new Node(parentLabel, parentStartIndex, parentStopIndex, parentLength, children, tree.getText());
     }
 }

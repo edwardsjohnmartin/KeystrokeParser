@@ -1,5 +1,6 @@
 package parser;
 
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -16,42 +17,58 @@ public class Node {
     }
 
     private static int _nextId = 0;
+
     private static int nextId() {
         return _nextId++;
     }
 
-    private int id;
-    private final String label;
-    private final int startIndex;
-    private final int length;
-    private final List<Node> children;
-    private Node parent = null;
-    private Node tparent = null;
-    private int tparentId = -1;
-    private boolean reference = false;
+    // temporal information
+    public int tid = -1;
+    public Node tparent = null;
+    public Node tchild = null;
+    public int numInserts = 0;
+    public int numDeletes = 0;
 
-    public Node(String label, int startIndex, int length, List<Node> children) {
+    public int id;
+    public final String label;
+    public final int startIndex;
+    public final int endIndex;
+    public final int length;
+    public final List<Node> children;
+    public Node parent = null;
+    public int tparentId = -1;
+    public boolean reference = false;
+    public String text;
+
+    public Node(String label, int startIndex, int endIndex, int length, List<Node> children, String text) {
         this.id = nextId();
         this.label = label;
         this.startIndex = startIndex;
+        this.endIndex = endIndex;
         this.length = length;
         this.children = new ArrayList<>(children);
-        for (Node child:this.children) {
+        this.text = text;
+
+        for (Node child : this.children) {
             child.parent = this;
         }
     }
 
     /**
      * Warning: this copies the ids over as well.
+     * 
      * @param copy
      */
     public Node(Node copy) {
         this.id = copy.id;
         this.label = copy.label;
         this.startIndex = copy.startIndex;
+        this.endIndex = copy.endIndex;
         this.length = copy.length;
         this.children = new ArrayList<>();
-        for (Node child:copy.children) {
+        this.text = copy.text;
+
+        for (Node child : copy.children) {
             Node newChild = new Node(child);
             this.children.add(newChild);
             newChild.parent = this;
@@ -64,11 +81,11 @@ public class Node {
     }
 
     private int resetIdsImpl(int id) {
-        for (Node child:children) {
-            id=child.resetIdsImpl(id);
+        for (Node child : children) {
+            id = child.resetIdsImpl(id);
         }
         this.id = id;
-        return id+1;
+        return id + 1;
     }
 
     public void replace(Node replacement) {
@@ -117,21 +134,21 @@ public class Node {
 
     public void traverse(Visitor visitor) {
         visitor.visit(this);
-        for (Node child:this.children) {
+        for (Node child : this.children) {
             child.traverse(visitor);
         }
     }
 
-    //-------------------------------------------------------
+    // -------------------------------------------------------
     // Reconstruction
-    //-------------------------------------------------------
+    // -------------------------------------------------------
     public Node reconstruct(Node source, Node tree) {
         return null;
     }
 
-    //-------------------------------------------------------
+    // -------------------------------------------------------
     // JSON
-    //-------------------------------------------------------
+    // -------------------------------------------------------
 
     public JSONObject toJSON() {
         JSONObject json = new JSONObject();
@@ -146,7 +163,7 @@ public class Node {
         }
 
         JSONArray jsonChildren = new JSONArray();
-        for (Node child:children) {
+        for (Node child : children) {
             jsonChildren.put(child.toJSON());
         }
 
@@ -156,32 +173,90 @@ public class Node {
         return json;
     }
 
-    private static JSONArray listNumberArray(int max){
+    private static JSONArray listNumberArray(int max) {
         JSONArray res = new JSONArray();
-        for (int i=0; i<max;i++) {
+        for (int i = 0; i < max; i++) {
             res.put(String.valueOf(i));
         }
         return res;
     }
 
-    //-------------------------------------------------------
+    // -------------------------------------------------------
     // GraphViz Dot
-    //-------------------------------------------------------
+    // -------------------------------------------------------
 
     public String toDot() {
         StringBuffer buf = new StringBuffer();
         nodeToDot(buf);
         return buf.toString();
     }
+
     private void nodeToDot(StringBuffer buf) {
-        buf.append(String.format("n%d [label = \"%s\\n%d, %d-%d\"];\n", id, label, id, startIndex, startIndex+length));
-//        if (this.tparent != null) {
-//            buf.append(String.format("n%s->n%s [style=dashed]\n", this.id, this.tparent.id));
-//        }
-        for (Node child:children) {
+        if (label != "Terminal") {
+            buf.append(
+                    String.format("n%d [label = \"%s\\n%d, %d-%d\"];\n", id, label, id, startIndex, endIndex));
+        } else {
+            buf.append(
+                    String.format("n%d [label = \"%s\\n%d, %d-%d\"];\n", id, text, id, startIndex, endIndex));
+        }
+        // if (this.tparent != null) {
+        // buf.append(String.format("n%s->n%s [style=dashed]\n", this.id,
+        // this.tparent.id));
+        // }
+        for (Node child : children) {
             child.nodeToDot(buf);
             buf.append(String.format("n%s->n%s;\n", id, child.id));
         }
+    }
+
+    public String toString() {
+        return this.text;
+    }
+
+    private String debugNode(String offset) {
+        String reString = offset
+                + "Label: `" + this.label + "`"
+                + " | Name: `" + this.toString() + "`"
+                + " | Start: " + this.startIndex
+                + " | End: " + this.endIndex
+                + " | Inserts: " + this.numInserts
+                + " | Deletes: " + this.numDeletes
+                + " | tid: " + tid;
+
+        reString += " | tpid: ";
+        if (this.tparent != null) {
+            reString += tparent.tid;
+        } else {
+            reString += "NaN";
+        }
+
+        reString += " | tchild: ";
+        if (this.tchild != null) {
+            reString += tchild.tid;
+        } else {
+            reString += "NaN";
+        }
+
+        return reString;
+    }
+
+    private String debugTree(String offset) {
+        String reString = this.debugNode(offset);
+
+        for (Node child : children) {
+            reString += "\n";
+            reString += child.debugTree(offset + "  ");
+        }
+
+        return reString;
+    }
+
+    public String debugNode() {
+        return debugNode("");
+    }
+
+    public String debugTree() {
+        return debugTree("");
     }
 
 }

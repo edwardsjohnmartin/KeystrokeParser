@@ -2,7 +2,11 @@
 .DS_Store
 .vscode
 .gradle
+.ipynb_checkpoints
 
 // build files
-app/bin
-app/build
+app/bin/*
+app/build/*
+
+// keystroke data
+app/src/main/resources/keystrokes*

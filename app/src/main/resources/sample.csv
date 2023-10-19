@@ -1,9 +1,196 @@
-EventID,SubjectID,AssignmentID,CodeStateSection,EventType,SourceLocation,EditType,InsertText,DeleteText,X-Metadata,ClientTimestamp,ToolInstances,CodeStateID
-0,Student1,Assign10,task1.py,File.Edit,0.0,Insert,"x",,,1636696834375,PC;PP 1.1.10,
-1,Student1,Assign10,task1.py,X-Action,,,,,Up,1636696889501,PC;PP 1.1.10,
-2,Student1,Assign10,task1.py,File.Edit,1.0,Insert,"=",,,1636696834375,PC;PP 1.1.10,
-3,Student1,Assign10,task1.py,File.Edit,2.0,Insert,"1",,,1636696834375,PC;PP 1.1.10,
-4,Student1,Assign10,task2.py,File.Edit,0.0,Insert,"y=3",,,1636696834375,PC;PP 1.1.10,
-5,Student1,Assign10,task2.py,X-Action,,,,,Up,1636696889501,PC;PP 1.1.10,
-6,Student1,Assign10,task3.py,File.Edit,0.0,Insert,"b",,,1636696834375,PC;PP 1.1.10,
-7,Student1,Assign10,task3.py,File.Edit,0.0,Insert,"a",,,1636696834375,PC;PP 1.1.10,
+"Key","EditType","SourceLocation","InsertText","DeleteText","ClientTimestamp"
+"Student1_Assign12_task1.py","Insert",0,"def main():
+    baseList = list(range(1, 101))
+
+    list1 = <Fill In>
+    print(list1)
+
+    'list2 = <Fill In>
+    print(list2)
+
+    list3 = <Fill In>
+    print(list3)
+
+main()","",1638570621931
+"Student1_Assign12_task1.py","Insert",92,"'","",1638570621971
+"Student1_Assign12_task1.py","Insert",94,"'","",1638570622065
+"Student1_Assign12_task1.py","Insert",95," ","",1638570622369
+"Student1_Assign12_task1.py","Insert",170," ","",1638570625139
+"Student1_Assign12_task1.py","Insert",171,"'","",1638570625312
+"Student1_Assign12_task1.py","Insert",172,"'","",1638570625458
+"Student1_Assign12_task1.py","Insert",173,"'","",1638570625588
+"Student1_Assign12_task1.py","Delete",60,"","<Fill In>",1638570632015
+"Student1_Assign12_task1.py","Insert",60,"x","",1638570632038
+"Student1_Assign12_task1.py","Delete",60,"","x",1638570632650
+"Student1_Assign12_task1.py","Insert",60,"[","",1638570633414
+"Student1_Assign12_task1.py","Insert",61,"]","",1638570633431
+"Student1_Assign12_task1.py","Insert",61,"x","",1638570633819
+"Student1_Assign12_task1.py","Insert",62," ","",1638570634840
+"Student1_Assign12_task1.py","Insert",63,"f","",1638570634870
+"Student1_Assign12_task1.py","Insert",64,"o","",1638570634890
+"Student1_Assign12_task1.py","Insert",65,"r","",1638570635023
+"Student1_Assign12_task1.py","Insert",66," ","",1638570635103
+"Student1_Assign12_task1.py","Insert",67,"x","",1638570635373
+"Student1_Assign12_task1.py","Insert",68," ","",1638570635690
+"Student1_Assign12_task1.py","Insert",69,"i","",1638570635798
+"Student1_Assign12_task1.py","Insert",70,"n","",1638570635934
+"Student1_Assign12_task1.py","Insert",71," ","",1638570636073
+"Student1_Assign12_task1.py","Insert",72,"b","",1638570637638
+"Student1_Assign12_task1.py","Insert",73,"a","",1638570637788
+"Student1_Assign12_task1.py","Insert",74,"s","",1638570637885
+"Student1_Assign12_task1.py","Insert",75,"e","",1638570638030
+"Student1_Assign12_task1.py","Insert",76,"L","",1638570638399
+"Student1_Assign12_task1.py","Insert",77,"i","",1638570638525
+"Student1_Assign12_task1.py","Insert",78,"s","",1638570638611
+"Student1_Assign12_task1.py","Insert",79,"t","",1638570638780
+"Student1_Assign12_task1.py","Insert",69," ","",1638570681143
+"Student1_Assign12_task1.py","Insert",69,"%","",1638570684356
+"Student1_Assign12_task1.py","Insert",70," ","",1638570685631
+"Student1_Assign12_task1.py","Insert",71,"2","",1638570689467
+"Student1_Assign12_task1.py","Insert",73," ","",1638570689542
+"Student1_Assign12_task1.py","Insert",73,"=","",1638570690286
+"Student1_Assign12_task1.py","Insert",74," ","",1638570690404
+"Student1_Assign12_task1.py","Insert",75,"0","",1638570690672
+"Student1_Assign12_task1.py","Delete",75,"","0",1638570692101
+"Student1_Assign12_task1.py","Delete",74,""," ",1638570692254
+"Student1_Assign12_task1.py","Insert",74,"=","",1638570693601
+"Student1_Assign12_task1.py","Insert",75,"0","",1638570694103
+"Student1_Assign12_task1.py","Delete",75,"","0",1638570695509
+"Student1_Assign12_task1.py","Insert",75," ","",1638570695724
+"Student1_Assign12_task1.py","Insert",76,"0","",1638570696976
+"Student1_Assign12_task1.py","Delete",69,"","% 2 == 0 ",1638570706887
+"Student1_Assign12_task1.py","Insert",80," ","",1638570815144
+"Student1_Assign12_task1.py","Insert",81,"i","",1638570815564
+"Student1_Assign12_task1.py","Insert",82,"f","",1638570815695
+"Student1_Assign12_task1.py","Insert",83," ","",1638570816716
+"Student1_Assign12_task1.py","Insert",84,"x","",1638570817894
+"Student1_Assign12_task1.py","Insert",85," ","",1638570818034
+"Student1_Assign12_task1.py","Insert",86,"%","",1638570818503
+"Student1_Assign12_task1.py","Insert",87," ","",1638570819280
+"Student1_Assign12_task1.py","Insert",88,"2","",1638570819451
+"Student1_Assign12_task1.py","Insert",89," ","",1638570820743
+"Student1_Assign12_task1.py","Insert",90,"=","",1638570821127
+"Student1_Assign12_task1.py","Insert",90,"=","",1638570821230
+"Student1_Assign12_task1.py","Insert",92," ","",1638570821350
+"Student1_Assign12_task1.py","Insert",93,"0","",1638570821788
+"Student1_Assign12_task1.py","Delete",121,""," ",1638570895720
+"Student1_Assign12_task1.py","Delete",120,"","'",1638570895796
+"Student1_Assign12_task1.py","Delete",118,"","'",1638570895992
+"Student1_Assign12_task1.py","Delete",118,"","'",1638570896640
+"Student1_Assign12_task1.py","Delete",195,"","'",1638570898688
+"Student1_Assign12_task1.py","Delete",194,"","'",1638570898829
+"Student1_Assign12_task1.py","Delete",193,"","'",1638570899008
+"Student1_Assign12_task1.py","Delete",192,""," ",1638570899176
+"Student1_Assign12_task1.py","Delete",126,"","<",1638570903508
+"Student1_Assign12_task1.py","Insert",126,"[","",1638570903509
+"Student1_Assign12_task1.py","Delete",134,"",">",1638570903510
+"Student1_Assign12_task1.py","Insert",134,"]","",1638570903511
+"Student1_Assign12_task1.py","Delete",127,"","Fill In",1638570906101
+"Student1_Assign12_task1.py","Insert",127,"x","",1638570907400
+"Student1_Assign12_task1.py","Insert",128," ","",1638570907762
+"Student1_Assign12_task1.py","Insert",129,"f","",1638570907855
+"Student1_Assign12_task1.py","Insert",130,"o","",1638570908033
+"Student1_Assign12_task1.py","Insert",131,"r","",1638570908115
+"Student1_Assign12_task1.py","Insert",132," ","",1638570908211
+"Student1_Assign12_task1.py","Insert",133,"x","",1638570908396
+"Student1_Assign12_task1.py","Insert",134," ","",1638570908764
+"Student1_Assign12_task1.py","Insert",135,"i","",1638570908797
+"Student1_Assign12_task1.py","Insert",136,"n","",1638570908894
+"Student1_Assign12_task1.py","Insert",137," ","",1638570909004
+"Student1_Assign12_task1.py","Insert",138,"b","",1638570909285
+"Student1_Assign12_task1.py","Insert",139,"a","",1638570909420
+"Student1_Assign12_task1.py","Insert",140,"s","",1638570909636
+"Student1_Assign12_task1.py","Insert",141,"e","",1638570909820
+"Student1_Assign12_task1.py","Insert",142,"l","",1638570910029
+"Student1_Assign12_task1.py","Delete",142,"","l",1638570910340
+"Student1_Assign12_task1.py","Insert",142,"List","",1638570911246
+"Student1_Assign12_task1.py","Insert",146," ","",1638570911867
+"Student1_Assign12_task1.py","Insert",147,"i","",1638570911951
+"Student1_Assign12_task1.py","Insert",148,"f","",1638570912074
+"Student1_Assign12_task1.py","Insert",149," ","",1638570912147
+"Student1_Assign12_task1.py","Insert",150,"x","",1638570912769
+"Student1_Assign12_task1.py","Insert",151," ","",1638570913294
+"Student1_Assign12_task1.py","Insert",152,"%","",1638570914879
+"Student1_Assign12_task1.py","Insert",153," ","",1638570915587
+"Student1_Assign12_task1.py","Insert",154,"3","",1638570916128
+"Student1_Assign12_task1.py","Insert",155," ","",1638570916273
+"Student1_Assign12_task1.py","Insert",156,"=","",1638570916725
+"Student1_Assign12_task1.py","Insert",156,"=","",1638570916834
+"Student1_Assign12_task1.py","Insert",158," ","",1638570917043
+"Student1_Assign12_task1.py","Insert",159,"0","",1638570917304
+"Student1_Assign12_task1.py","Insert",160," ","",1638570917439
+"Student1_Assign12_task1.py","Insert",161,"a","",1638570917750
+"Student1_Assign12_task1.py","Insert",162,"n","",1638570917882
+"Student1_Assign12_task1.py","Insert",163,"d","",1638570917962
+"Student1_Assign12_task1.py","Insert",164," ","",1638570918086
+"Student1_Assign12_task1.py","Insert",165,"x","",1638570925207
+"Student1_Assign12_task1.py","Insert",166," ","",1638570926065
+"Student1_Assign12_task1.py","Insert",167,"<","",1638570926290
+"Student1_Assign12_task1.py","Insert",168," ","",1638570927293
+"Student1_Assign12_task1.py","Insert",169,"5","",1638570928490
+"Student1_Assign12_task1.py","Insert",170,"0","",1638570928584
+"Student1_Assign12_task1.py","Delete",211,"",">",1638570943507
+"Student1_Assign12_task1.py","Delete",210,"","n",1638570944011
+"Student1_Assign12_task1.py","Delete",209,"","I",1638570944038
+"Student1_Assign12_task1.py","Delete",208,""," ",1638570944130
+"Student1_Assign12_task1.py","Delete",207,"","l",1638570944207
+"Student1_Assign12_task1.py","Delete",206,"","l",1638570944293
+"Student1_Assign12_task1.py","Delete",205,"","i",1638570944381
+"Student1_Assign12_task1.py","Delete",204,"","F",1638570944459
+"Student1_Assign12_task1.py","Delete",203,"","<",1638570944754
+"Student1_Assign12_task1.py","Insert",203,"[","",1638570963218
+"Student1_Assign12_task1.py","Insert",204,"]","",1638570963236
+"Student1_Assign12_task1.py","Insert",204,"x","",1638570963931
+"Student1_Assign12_task1.py","Insert",205," ","",1638570964433
+"Student1_Assign12_task1.py","Insert",206,"f","",1638570964453
+"Student1_Assign12_task1.py","Insert",207,"o","",1638570964468
+"Student1_Assign12_task1.py","Insert",208,"r","",1638570964500
+"Student1_Assign12_task1.py","Insert",209," ","",1638570964544
+"Student1_Assign12_task1.py","Insert",210,"x","",1638570965124
+"Student1_Assign12_task1.py","Insert",211," ","",1638570965364
+"Student1_Assign12_task1.py","Insert",212,"i","",1638570965430
+"Student1_Assign12_task1.py","Insert",213,"n","",1638570965530
+"Student1_Assign12_task1.py","Insert",214," ","",1638570965626
+"Student1_Assign12_task1.py","Insert",215,"b","",1638570965985
+"Student1_Assign12_task1.py","Insert",216,"a","",1638570966108
+"Student1_Assign12_task1.py","Insert",217,"s","",1638570966223
+"Student1_Assign12_task1.py","Insert",218,"eList","",1638570966692
+"Student1_Assign12_task1.py","Insert",223," ","",1638570967477
+"Student1_Assign12_task1.py","Insert",224,"i","",1638570967570
+"Student1_Assign12_task1.py","Insert",225,"f","",1638570967768
+"Student1_Assign12_task1.py","Insert",226," ","",1638570967882
+"Student1_Assign12_task1.py","Insert",227,"x","",1638570968677
+"Student1_Assign12_task1.py","Insert",228," ","",1638570969154
+"Student1_Assign12_task1.py","Insert",229,"%","",1638570970694
+"Student1_Assign12_task1.py","Insert",230," ","",1638570970880
+"Student1_Assign12_task1.py","Insert",231,"5","",1638570971119
+"Student1_Assign12_task1.py","Insert",232," ","",1638570971787
+"Student1_Assign12_task1.py","Insert",233,"=","",1638570972244
+"Student1_Assign12_task1.py","Insert",233,"=","",1638570972364
+"Student1_Assign12_task1.py","Insert",235," ","",1638570972502
+"Student1_Assign12_task1.py","Insert",236,"0","",1638570972805
+"Student1_Assign12_task1.py","Insert",237," ","",1638570973004
+"Student1_Assign12_task1.py","Insert",238,"a","",1638570973584
+"Student1_Assign12_task1.py","Insert",239,"n","",1638570973679
+"Student1_Assign12_task1.py","Insert",240,"d","",1638570973780
+"Student1_Assign12_task1.py","Insert",241," ","",1638570973871
+"Student1_Assign12_task1.py","Insert",242,"x","",1638570974093
+"Student1_Assign12_task1.py","Insert",243," ","",1638570974609
+"Student1_Assign12_task1.py","Insert",244,">","",1638570975056
+"Student1_Assign12_task1.py","Insert",245," ","",1638570975280
+"Student1_Assign12_task1.py","Insert",246,"5","",1638570975885
+"Student1_Assign12_task1.py","Insert",247,"0","",1638570975986
+"Student1_Assign12_task1.py","Insert",206," ","",1638570979273
+"Student1_Assign12_task1.py","Insert",206,"*","",1638570981998
+"Student1_Assign12_task1.py","Insert",207," ","",1638570983117
+"Student1_Assign12_task1.py","Insert",208,"5","",1638570983241
+"Student1_Assign12_task1.py","Insert",209,"0","",1638570983340
+"Student1_Assign12_task1.py","Delete",208,"","5",1638570995161
+"Student1_Assign12_task1.py","Insert",208,"1","",1638570995207
+"Student1_Assign12_task1.py","Insert",0,"
+","",1638571156446
+"Student1_Assign12_task1.py","Insert",0,"
+","",1638571157041
+"Student1_Assign12_task1.py","Insert",0,"# @@@@@@@@@@@@@
+# CS1400 - MW1
+# Assignment 12","",1638571158787

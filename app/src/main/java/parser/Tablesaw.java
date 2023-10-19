@@ -1,5 +1,7 @@
 package parser;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,52 +9,67 @@ import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.csv.CsvReadOptions;
+import tech.tablesaw.io.csv.CsvWriteOptions;
 import tech.tablesaw.selection.Selection;
 
 public class Tablesaw {
 
-    public void test() {
-        final String fileName = "src/main/resources/sample.csv";
+    public void test() throws InterruptedException {
+        final String fileName = "src/main/resources/keystrokes.csv";
         Table dataframe = this.readFile(fileName);
         this.printHeaders(dataframe);
 
         List<String> keys = this.createKeys(dataframe);
         System.out.println("\nUnique keys in file: " + keys.size());
 
-        this.printRows(dataframe);
+        long startTime = System.currentTimeMillis();
+        ArrayList<Thread> threads = new ArrayList<>();
+        for (String key : keys) {
+            Table selection = this.selectTask(dataframe, key);
+
+            @SuppressWarnings("preview")
+            Thread thread = Thread.startVirtualThread(new MyRunnable(selection, key));
+            threads.add(thread);
+        }
+
+        for (Thread thread : threads) {
+            thread.join();
+        }
+
+        long endTime = System.currentTimeMillis();
+
+        System.out.println("That took " + (endTime - startTime) + " milliseconds");
     }
 
     public Table readFile(final String fileName) {
         ColumnType[] types = {
-                ColumnType.INTEGER, // EventID
-                ColumnType.STRING, // SubjectID
-                ColumnType.STRING, // AssignmentID
-                ColumnType.STRING, // CodeStateSection
-                ColumnType.STRING, // EventType
-                ColumnType.INTEGER, // SourceLocation
+                ColumnType.STRING, // Key
                 ColumnType.STRING, // EditType
+                ColumnType.INTEGER, // SourceLocation
                 ColumnType.STRING, // InsertText
                 ColumnType.STRING, // DeleteText
-                ColumnType.STRING, // X-Metadata
                 ColumnType.LONG, // ClientTimestamp
-                ColumnType.STRING, // ToolInstances
-                ColumnType.STRING, // CodeStateID
         };
         CsvReadOptions options = CsvReadOptions.builder(fileName)
-                .maxCharsPerColumn(25000)
+                .maxCharsPerColumn(32768)
                 .separator(',')
                 .header(true)
                 .columnTypes(types)
+                .quoteChar('"')
+                .missingValueIndicator("NaN")
                 .build();
 
-        Table dataframe = Table.read().usingOptions(options);
-        dataframe = dataframe.removeColumns("EventID", "X-Metadata", "ToolInstances", "CodeStateID");
-        final Selection selection = dataframe.stringColumn("EventType").isEqualTo("File.Edit");
-        return dataframe.where(selection).removeColumns("EventType");
+        return Table.read().usingOptions(options);
     }
 
     public void writeFile(final Table dataframe, final String fileName) {
-        dataframe.write().csv(fileName);
+        CsvWriteOptions options = CsvWriteOptions.builder(fileName)
+                .separator(',')
+                .header(true)
+                .quoteChar('"')
+                .quoteAllFields(true) // needed? or just a bug?
+                .build();
+        dataframe.write().csv(options);
     }
 
     public void printHeaders(final Table dataframe) {
@@ -71,18 +88,23 @@ public class Tablesaw {
         ArrayList<String> keys = new ArrayList<>();
 
         for (Row row : dataframe) {
-            String student = row.getString("SubjectID");
-            String assignment = row.getString("AssignmentID");
-            String task = row.getString("CodeStateSection");
-            String key = String.format("%s_%s_%s", student, assignment, task);
-
+            final String key = row.getString("Key");
             if (!keys.contains(key))
                 keys.add(key);
         }
 
-        System.out.println(keys);
-
         return keys;
+    }
+
+    public Table selectTask(final Table dataframe, final String subjectId, final String assignmentId,
+            final String codeStateSection) {
+
+        final String key = String.format("%s_%s_%s", subjectId, assignmentId, codeStateSection);
+        return this.selectTask(dataframe, key);
+    }
+
+    public Table selectTask(final Table dataframe, final String key) {
+        return dataframe.where(dataframe.stringColumn("Key").isEqualTo(key));
     }
 
 }

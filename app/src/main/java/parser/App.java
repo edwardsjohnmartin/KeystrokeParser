@@ -16,32 +16,33 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import parser.antlr.PythonLexer;
 import parser.antlr.PythonParser;
 import parser.antlr.PythonParser.RootContext;
+import tech.tablesaw.api.Table;
 
 public class App {
     public static void main(String[] args) throws IOException, InterruptedException {
-        new Tablesaw().test();
+        ts();
+        // getReconTrees();
+    }
 
-        var run = new App();
-        run.warmup();
-
-//        run.tree2dot(run.createTreeFromFile("src/main/resources/test1/1.py"));
-//        run.tree2dot(run.createTreeFromFile("src/main/resources/test1/2.py"));
-//        run.tree2dot(run.createTreeFromFile("src/main/resources/test1/3.py"));
+    private static void getReconTrees() throws IOException {
+        // run.tree2dot(run.createTreeFromFile("src/main/resources/test1/1.py"));
+        // run.tree2dot(run.createTreeFromFile("src/main/resources/test1/2.py"));
+        // run.tree2dot(run.createTreeFromFile("src/main/resources/test1/3.py"));
 
         List<Node> origTrees = new ArrayList<>();
-        origTrees.add(MyVisitor.toSimpleTree(run.createTreeFromFile("src/main/resources/test1/1.py")));
-        origTrees.add(MyVisitor.toSimpleTree(run.createTreeFromFile("src/main/resources/test1/2.py")));
-        origTrees.add(MyVisitor.toSimpleTree(run.createTreeFromFile("src/main/resources/test1/3.py")));
+        origTrees.add(MyVisitor.toSimpleTree(Parser.createTreeFromFile("src/main/resources/test1/1.py")));
+        origTrees.add(MyVisitor.toSimpleTree(Parser.createTreeFromFile("src/main/resources/test1/2.py")));
+        origTrees.add(MyVisitor.toSimpleTree(Parser.createTreeFromFile("src/main/resources/test1/3.py")));
 
         // Set up id2node
         Map<Integer, Node> id2node = new HashMap<>();
         Node.Visitor v = n -> id2node.put(n.getId(), n);
-        for (Node root:origTrees) {
+        for (Node root : origTrees) {
             root.traverse(v);
         }
 
         // Test resetIds
-//        orig2.resetIds(orig1.getId()+1);
+        // orig2.resetIds(orig1.getId()+1);
 
         // Prune trees
         List<Node> prunedTrees = new ArrayList<>();
@@ -54,104 +55,41 @@ public class App {
 
         // Test reconstruction
         List<Node> reconTrees = new ArrayList<>();
-        for (Node pruned:prunedTrees) {
+        for (Node pruned : prunedTrees) {
             if (pruned.isReference()) {
                 reconTrees.add(pruned);
             } else {
-                Node ref = reconTrees.get(reconTrees.size()-1);
+                Node ref = reconTrees.get(reconTrees.size() - 1);
                 Node copy = new Node(ref);
                 copy.replace(pruned);
-                copy.resetIds(ref.getId()+1);
+                copy.resetIds(ref.getId() + 1);
                 reconTrees.add(copy);
             }
         }
 
         System.out.println("digraph G {");
-        for (Node root:origTrees) {
-//        for (Node root:prunedTrees) {
-//        for (Node root:reconTrees) {
+        for (Node root : origTrees) {
+            // for (Node root:prunedTrees) {
+            // for (Node root:reconTrees) {
             System.out.println(root.toDot());
         }
         System.out.println("}");
-
-//        final String content = new String(Files.readAllBytes(Paths.get("src/main/resources/test0/1")));
-//        RootContext tree = run.createTree(content);
-//        run.tree2dot(tree);
-
-//        System.out.println("\nTesting ANTLR Execution on 10000 medium trees");
-//        long startTime = System.nanoTime();
-//        run.testAntlr();
-//        long duration = (System.nanoTime() - startTime) / 1000000;
-//        System.out.println("Time taken: " + duration + " ms");
-//
-//        System.out.println("\nTesting Threaded ANTLR Execution on 10000 medium trees");
-//        startTime = System.nanoTime();
-//        run.testThreadedAntlr();
-//        duration = (System.nanoTime() - startTime) / 1000000;
-//        System.out.println("Threaded Time taken: " + duration + " ms\n");
     }
 
-    public void warmup() {
-        createTree("x: int = 1");
-    }
+    private static void ts() {
+        var ts = new Tablesaw();
 
-    public RootContext createTreeFromFile(String fn) throws IOException {
-        final String content = new String(Files.readAllBytes(Paths.get(fn)));
-        return createTree(content);
-    }
-    public RootContext createTree(String input) {
-        CharStream in = CharStreams.fromString(input);
-        PythonLexer lexer = new PythonLexer(in);
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        PythonParser parser = new PythonParser(tokens);
+        final String fileName = "src/main/resources/sample.csv";
+        Table dataframe = ts.readFile(fileName);
+        ts.printHeaders(dataframe);
 
-        parser.setBuildParseTree(true);
-        parser.removeErrorListeners();
+        List<String> keys = ts.createKeys(dataframe);
+        System.out.println("\nUnique keys in file: " + keys.size());
+        System.out.println("\n");
 
-        return parser.root();
-    }
-
-//    public void tree2dot(RootContext tree) {
-//        MyVisitor visitor = new MyVisitor();
-//        visitor.toSimpleTree(tree);
-//    }
-
-    public void testAntlr() throws IOException {
-
-        final String content = new String(Files.readAllBytes(Paths.get("src/main/resources/test0/1")));
-        // for (int i = 0; i < 10000; ++i) {
-        for (int i = 0; i < 1; ++i) {
-            RootContext tree = createTree(content);
-            FileWriter writer = new FileWriter("output/test" + UUID.randomUUID() + ".txt");
-            writer.write(tree.toString());
-            writer.close();
-        }
-    }
-
-    public void testThreadedAntlr() throws IOException, InterruptedException {
-        ArrayList<Thread> threads = new ArrayList<>(10000);
-
-        final String content = new String(Files.readAllBytes(Paths.get("src/main/resources/test0/1")));
-        // for (int i = 0; i < 10000; ++i) {
-        for (int i = 0; i < 1; ++i) {
-
-            @SuppressWarnings("preview")
-            Thread thread = Thread.startVirtualThread(() -> {
-                try {
-                    RootContext tree = createTree(content);
-                    FileWriter writer = new FileWriter("output/test" + UUID.randomUUID() + ".txt");
-                    writer.write(tree.toString());
-                    writer.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-            threads.add(thread);
-
-        }
-
-        for (Thread thread : threads) {
-            thread.join();
-        }
+        final String key = "Student1_Assign12_task1.py";
+        Table selection = ts.selectTask(dataframe, key);
+        Reconstruction reconstruction = new Reconstruction(selection);
+        reconstruction.trees.get(0);
     }
 }
