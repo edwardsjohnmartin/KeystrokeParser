@@ -33,19 +33,22 @@ public class Node {
     public int id;
     public final String label;
     public int startIndex;
-    public int endIndex;
+//    public int endIndex;
     public int length;
     public final List<Node> children;
     public Node parent = null;
-    public int tparentId = -1;
+//    public int tparentId = -1;
     public boolean reference = false;
     public String text;
 
     public Node(String label, int startIndex, int endIndex, int length, List<Node> children, String text) {
         this.id = nextId();
         this.label = label;
+        if (startIndex > endIndex || endIndex-startIndex+1 != length) {
+            throw new RuntimeException("Unexpected start/end indices");
+        }
         this.startIndex = startIndex;
-        this.endIndex = endIndex;
+//        this.endIndex = endIndex;
         this.length = length;
         this.children = new ArrayList<>(children);
         this.text = text;
@@ -64,10 +67,11 @@ public class Node {
         this.id = copy.id;
         this.label = copy.label;
         this.startIndex = copy.startIndex;
-        this.endIndex = copy.endIndex;
+//        this.endIndex = copy.endIndex;
         this.length = copy.length;
         this.children = new ArrayList<>();
         this.text = copy.text;
+        this.tparent = copy;
 
         for (Node child : copy.children) {
             Node newChild = new Node(child);
@@ -80,16 +84,22 @@ public class Node {
         if (this == node)
             return true;
         boolean e = (id == node.id && startIndex == node.startIndex && length == node.length &&
-                tparentId == node.tparentId && Objects.equals(label, node.label));
+                getTparentId() == node.getTparentId() && Objects.equals(label, node.label));
         if (!e) {
+            System.out.println("not equal: "+node.id);
             return false;
         }
         for (int i = 0; i < children.size(); ++i) {
             if (!children.get(i).isEqual(node.children.get(i))) {
+                System.out.println("not equal: "+node.id);
                 return false;
             }
         }
         return true;
+    }
+
+    public int getEndIndex() {
+        return this.startIndex + this.length - 1;
     }
 
     public void resetIds(int startId) {
@@ -101,13 +111,13 @@ public class Node {
         for (Node child : children) {
             id = child.resetIdsImpl(id);
         }
-        this.tparentId = this.id;
+//        this.tparentId = this.id;
         this.id = id;
         return id + 1;
     }
 
     public void replace(Node replacement) {
-        if (replacement.tparentId == id) {
+        if (replacement.getTparentId() == id) {
             throw new RuntimeException("Unexpectedly trying to replace the root.");
         }
         replaceImpl(replacement);
@@ -116,16 +126,18 @@ public class Node {
     private void replaceImpl(Node replacement) {
         for (int i = 0; i < children.size(); ++i) {
             Node child = children.get(i);
-            if (replacement.tparentId == child.id) {
+            if (replacement.getTparentId() == child.id) {
                 children.set(i, replacement);
                 replacement.parent = this;
-                if (child.startIndex != replacement.startIndex) {
-                    throw new RuntimeException("Start indices unexpectedly different.");
-                }
+//                if (child.startIndex != replacement.startIndex) {
+//                    System.out.println("child id: "+child.id+" replacement id: "+replacement.id);
+//                    throw new RuntimeException("Start indices unexpectedly different: child="+child.startIndex+" replacement="+replacement.startIndex);
+//                }
 
                 // Update ranges
-                int add = replacement.length - child.length;
-                replacement.parent.updateRanges(add, replacement);
+                int addStart = replacement.startIndex - child.startIndex;
+                int addLength = replacement.length - child.length;
+                replacement.parent.updateRanges(addStart, addLength, replacement);
                 return;
             } else {
                 child.replaceImpl(replacement);
@@ -133,20 +145,24 @@ public class Node {
         }
     }
 
-    private void updateRanges(int add, Node sourceChild) {
+    private void updateRanges(int addStart, int addLength, Node sourceChild) {
         // The sourceChild is the child that is propagating the change up to this.
-        this.length += add;
+        this.startIndex += addStart;
+        this.length += addLength;
         int i = children.indexOf(sourceChild);
         for (int j = i + 1; j < children.size(); ++j) {
-            children.get(j).updateRangesDown(add);
+            children.get(j).updateRangesDown(addLength+addStart);
         }
         if (parent != null) {
-            parent.updateRanges(add, this);
+            parent.updateRanges(addStart, addLength, this);
         }
     }
 
     private void updateRangesDown(int add) {
         this.startIndex += add;
+//        if (this.startIndex > this.endIndex) {
+//            throw new RuntimeException("updateRangesDown causing a problem");
+//        }
         for (Node child : this.children) {
             child.updateRangesDown(add);
         }
@@ -161,12 +177,13 @@ public class Node {
     }
 
     public int getTparentId() {
-        return tparentId;
+//        return tparentId;
+        return (tparent != null) ? tparent.getId() : -1;
     }
 
     public void setTparent(Node tparent) {
         this.tparent = tparent;
-        this.tparentId = tparent.getId();
+//        this.tparentId = tparent.getId();
     }
 
     public boolean isReference() {
@@ -230,26 +247,30 @@ public class Node {
     // GraphViz Dot
     // -------------------------------------------------------
     public String toDot() {
+        return toDot("n");
+    }
+
+    public String toDot(String prefix) {
         StringBuffer buf = new StringBuffer();
-        nodeToDot(buf);
+        nodeToDot(buf, prefix);
         return buf.toString();
     }
 
-    private void nodeToDot(StringBuffer buf) {
+    private void nodeToDot(StringBuffer buf, String prefix) {
         if (label != "Terminal") {
             buf.append(
-                    String.format("n%d [label = \"%s\\n%d, %d-%d\"];\n", id, label, id, startIndex, endIndex));
+                    String.format("%s%d [label = \"%s\\n%d, %d-%d, tp=%d\"];\n", prefix, id, label, id, startIndex, getEndIndex(), getTparentId()));
         } else {
             buf.append(
-                    String.format("n%d [label = \"%s\\n%d, %d-%d\"];\n", id, text, id, startIndex, endIndex));
+                    String.format("%s%d [label = \"%s\\n%d, %d-%d, tp=%d\"];\n", prefix, id, text, id, startIndex, getEndIndex(), getTparentId()));
         }
         // if (this.tparent != null) {
         // buf.append(String.format("n%s->n%s [style=dashed]\n", this.id,
         // this.tparent.id));
         // }
         for (Node child : children) {
-            child.nodeToDot(buf);
-            buf.append(String.format("n%s->n%s;\n", id, child.id));
+            child.nodeToDot(buf, prefix);
+            buf.append(String.format("%s%s->%s%s;\n", prefix, id, prefix, child.id));
         }
     }
 
@@ -262,7 +283,7 @@ public class Node {
                 + "Label: `" + this.label + "`"
                 + " | Name: `" + this.toString() + "`"
                 + " | Start: " + this.startIndex
-                + " | End: " + this.endIndex
+                + " | End: " + this.getEndIndex()
                 + " | Inserts: " + this.numInserts
                 + " | Deletes: " + this.numDeletes
                 + " | tid: " + tid;

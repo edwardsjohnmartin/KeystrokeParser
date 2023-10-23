@@ -131,7 +131,7 @@ public class TemporalHierarchy {
             }
 
             int start = tree.startIndex;
-            int end = tree.endIndex;
+            int end = tree.getEndIndex();
             // int end = tree.tparent.length + tree.tparent.startIndex - 1;
             int oldSize = tree.tparent.length;
 
@@ -180,7 +180,7 @@ public class TemporalHierarchy {
     private void setAllTparents(Node tree) {
         // Get the current indicies for the tree node
         int start = tree.startIndex;
-        int end = tree.endIndex;
+        int end = tree.getEndIndex();
 
         // Get the start and end indices in the code as it was
         // when the previous ast was created
