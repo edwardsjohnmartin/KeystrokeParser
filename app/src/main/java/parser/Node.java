@@ -1,11 +1,9 @@
 package parser;
 
-import org.antlr.v4.runtime.ParserRuleContext;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -24,7 +22,7 @@ public class Node {
     }
 
     // temporal information
-    public int tid = -1;
+//    public int tid = -1;
     public Node tparent = null;
     public Node tchild = null;
     public int numInserts = 0;
@@ -39,7 +37,10 @@ public class Node {
     public Node parent = null;
 //    public int tparentId = -1;
     public boolean reference = false;
-    public String text;
+    public final String text;
+    // The starting character index of the next node. This is used in
+    // pruning and reconstruction.
+    public int nextStartIndex = -1;
 
     public Node(String label, int startIndex, int endIndex, int length, List<Node> children, String text) {
         this.id = nextId();
@@ -98,6 +99,45 @@ public class Node {
         return true;
     }
 
+    /**
+     * Depth-first traversal
+     * @param visitor
+     */
+    public void depthFirst(Visitor visitor) {
+        for (Node child:children) {
+            child.depthFirst(visitor);
+        }
+        visitor.visit(this);
+    }
+
+    /**
+     * Visits all nodes that have a start index strictly
+     * after the end index of this. So, the parent of this
+     * is not included, but siblings that come after this
+     * are included.
+     * @param visitor
+     */
+    public void strictlyAfter(Visitor visitor) {
+        if (parent == null) {
+            return;
+        }
+        int i = parent.children.indexOf(this)+1;
+        for (; i < parent.children.size(); ++i) {
+            parent.children.get(i).depthFirst(visitor);
+        }
+        parent.strictlyAfter(visitor);
+    }
+
+    /**
+     * Returns a list of nodes in depth-first order.
+     * @return
+     */
+    public List<Node> getDepthFirst() {
+        List<Node> nodes = new ArrayList<>();
+        depthFirst((Node n) -> {nodes.add(n);});
+        return nodes;
+    }
+
     public int getEndIndex() {
         return this.startIndex + this.length - 1;
     }
@@ -123,6 +163,11 @@ public class Node {
         replaceImpl(replacement);
     }
 
+    private Node lastChild() {
+        if (children.isEmpty()) return null;
+        return children.get(children.size()-1);
+    }
+
     private void replaceImpl(Node replacement) {
         for (int i = 0; i < children.size(); ++i) {
             Node child = children.get(i);
@@ -135,9 +180,38 @@ public class Node {
 //                }
 
                 // Update ranges
-                int addStart = replacement.startIndex - child.startIndex;
+//                int addStart = replacement.startIndex - child.startIndex;
                 int addLength = replacement.length - child.length;
-                replacement.parent.updateRanges(addStart, addLength, replacement);
+                Node parent = this;
+                Node tchild = replacement;
+                while (parent != null && tchild == parent.lastChild()) {
+                    parent.length += addLength;
+                    tchild = parent;
+                    parent = parent.parent;
+                }
+
+                Node next = getNext();
+                if (next != null) {
+                    if (replacement.nextStartIndex == -1) {
+                        throw new RuntimeException("nextStartIndex unexpectedly -1: "+this.id);
+                    }
+                    System.out.println(String.format("id=%d, next=%d", id, next.id));
+                    final int nextStartOffset = replacement.nextStartIndex - next.startIndex;
+                    strictlyAfter((Node n) -> {n.startIndex += nextStartOffset;});
+                    parent = next.parent;
+                    while (parent != null) {
+                        parent.length += nextStartOffset;
+                        parent = parent.parent;
+                    }
+                }
+
+
+                //                List<Node> toUpdate = getDepthFirst();
+//                toUpdate = toUpdate.subList(toUpdate.indexOf(replacement)+1, toUpdate.size());
+//                for (Node n:toUpdate) {
+//                    n.startIndex += addStart+addLength;
+//                }
+//                replacement.parent.updateRanges(addStart, addLength, replacement);
                 return;
             } else {
                 child.replaceImpl(replacement);
@@ -166,6 +240,17 @@ public class Node {
         for (Node child : this.children) {
             child.updateRangesDown(add);
         }
+    }
+
+    private Node getNext() {
+        if (parent == null) {
+            return null;
+        }
+        final int i = parent.children.indexOf(this);
+        if (i < parent.children.size()-1) {
+            return parent.children.get(i+1);
+        }
+        return parent.getNext();
     }
 
     public int getId() {
@@ -201,12 +286,21 @@ public class Node {
         }
     }
 
+    public void computeNextStartIndex() {
+        Node n = getNext();
+        if (n != null) {
+            this.nextStartIndex = n.startIndex;
+        } else {
+            this.nextStartIndex = -1;
+        }
+    }
+
     // -------------------------------------------------------
     // Reconstruction
     // -------------------------------------------------------
-    public Node reconstruct(Node source, Node tree) {
-        return null;
-    }
+//    public Node reconstruct(Node source, Node tree) {
+//        return null;
+//    }
 
     // -------------------------------------------------------
     // JSON
@@ -222,6 +316,9 @@ public class Node {
         }
         if (this.tparent != null) {
             json.put("tparent", this.tparent.id);
+        }
+        if (this.nextStartIndex > -1) {
+            json.put("nextStartIndex", this.nextStartIndex);
         }
 
         JSONArray jsonChildren = new JSONArray();
@@ -285,19 +382,21 @@ public class Node {
                 + " | Start: " + this.startIndex
                 + " | End: " + this.getEndIndex()
                 + " | Inserts: " + this.numInserts
-                + " | Deletes: " + this.numDeletes
-                + " | tid: " + tid;
+                + " | Deletes: " + this.numDeletes;
+//                + " | tid: " + tid;
 
         reString += " | tpid: ";
         if (this.tparent != null) {
-            reString += tparent.tid;
+//            reString += tparent.tid;
+            reString += tparent.id;
         } else {
             reString += "NaN";
         }
 
         reString += " | tchild: ";
         if (this.tchild != null) {
-            reString += tchild.tid;
+//            reString += tchild.tid;
+            reString += tchild.id;
         } else {
             reString += "NaN";
         }

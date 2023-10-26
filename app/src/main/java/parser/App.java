@@ -31,7 +31,7 @@ public class App {
     }
 
     private static void outputGraphViz(List<Node> trees) {
-        Trees.outputGraphViz(trees);
+        Trees.outputGraphViz(trees, "trees.dot");
 //        System.out.println("digraph G {");
 //        for (int i = 0; i < trees.size(); ++i) {
 //            System.out.println(trees.get(i).toDot(String.format("%s", Character.toString((char)(((int)'a')+i)))));
@@ -175,56 +175,19 @@ public class App {
         final String key = "Student1_Assign12_task1.py";
         Table selection = ts.selectTask(dataframe, key);
         Reconstruction reconstruction = new Reconstruction(selection);
-        int num = 7;
-//        List<Node> origTrees = reconstruction.trees.subList(173, 173+num);
-        Trees origTrees = new Trees(reconstruction);
-
-//        outputGraphViz(origTrees.subList(3, 5));
+//        int start=173, len=7;
+//        int start=13, len=2;
+        int start=33, len=4;
+        Trees origTrees = new Trees(reconstruction.trees.subList(start, start+len));
+//        Trees origTrees = new Trees(reconstruction.trees);
+        origTrees.outputGraphViz("orig.dot");
+//        origTrees.outputJSON();
         Trees prunedTrees = origTrees.prune();
-//        Node reference = origTrees.get(0);
-//        reference.setIsReference(true);
-//        List<Node> prunedTrees = new ArrayList<>();
-//        prunedTrees.add(reference);
-//
-//        for (int i = 0; i < num-1; ++i) {
-//            int previ = i;
-//            int curi = i+1;
-//            Node prev = origTrees.get(previ);
-//            Node cur = origTrees.get(curi);
-//            prunedTrees.add(findChanged(prev, cur));
-//        }
-//        outputGraphViz(prunedTrees);
-
+        prunedTrees.outputGraphViz("pruned.dot");
         Trees reconTrees = prunedTrees.reconstructFromPruned();
-        // Reconstruct from pruned trees
-//        List<Node> reconTrees = new ArrayList<>();
-//        for (int i = 0; i < prunedTrees.size(); ++i) {
-////        for (Node pruned : prunedTrees) {
-//            Node pruned = prunedTrees.get(i);
-//            System.out.println(i);
-//            if (pruned.isReference()) {
-//                reconTrees.add(pruned);
-//            } else {
-//                Node ref = reconTrees.get(reconTrees.size() - 1);
-//                Node copy = new Node(ref);
-//                copy.replace(pruned);
-//                copy.resetIds(ref.getId() + 1);
-//                reconTrees.add(copy);
-//            }
-//        }
+        reconTrees.outputGraphViz("recon.dot");
+        origTrees.checkEqual(reconTrees);
 
-//        for (int i = 0; i < origTrees.size(); ++i) {
-//            if (!origTrees.get(i).isEqual(reconTrees.get(i))) {
-//                System.out.println("digraph G {");
-//                System.out.println(origTrees.get(i).toDot("o"));
-//                System.out.println(reconTrees.get(i).toDot("r"));
-//                System.out.println("}");
-//                throw new RuntimeException("Reconstructed tree at index " + i + " is incorrect.");
-//            }
-//        }
-
-//        outputGraphViz(reconTrees);
-        reconTrees.outputGraphViz();
 
 //        System.out.println(reconstruction.codeStates.get(n));
 //        outputGraphViz(tree);

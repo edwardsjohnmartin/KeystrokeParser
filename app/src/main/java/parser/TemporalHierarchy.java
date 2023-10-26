@@ -86,11 +86,11 @@ public class TemporalHierarchy {
             return;
         }
 
-        if (tree.tid == -1) {
-            tree.tid = this.nextTid;
-            this.tidToNode.add(this.nextTid, tree);
-            this.nextTid += 1;
-        }
+//        if (tree.tid == -1) {
+//            tree.tid = this.nextTid;
+//            this.tidToNode.add(this.nextTid, tree);
+//            this.nextTid += 1;
+//        }
 
         if (tree.children != null) {
             for (Node child : tree.children) {
