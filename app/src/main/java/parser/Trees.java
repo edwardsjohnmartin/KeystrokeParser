@@ -50,11 +50,14 @@ public class Trees {
     }
 
     private static Node findChanged(Node tparent, Node node) {
-        Node changed = findChangedImpl(tparent, node);
+        Node changed = findTreeChanges(tparent, node);
         if (changed == null) {
             // The tree structure didn't change. We need to
             // check for anything that might have moved.
-            changed = findStartIndexChangedImpl(tparent, node);
+            changed = findWhitespaceChanges(tparent, node);
+//            if (changed != null) {
+//                System.out.println("Whitespace change");
+//            }
         }
         // Changed nodes must have a tparent
         if (changed != null) {
@@ -65,7 +68,14 @@ public class Trees {
         return changed;
     }
 
-    private static Node findChangedImpl(Node tparent, Node node) {
+    /**
+     * Find structural changes to the tree, including changes in type of nodes, nodes being added
+     * or removed, and leaf nodes changing (e.g., identifier changes).
+     * @param tparent
+     * @param node
+     * @return
+     */
+    private static Node findTreeChanges(Node tparent, Node node) {
         if (tparent.children.size() == 0 || node.children.size() == 0) {
             // Leaf
             return node;
@@ -90,9 +100,11 @@ public class Trees {
             }
         }
         if (achanged == null) {
-            return null;//throw new RuntimeException("Really? No children changed?");
+            // No children changed. This is possible when the whitespace between children
+            // changes.
+            return null;
         }
-        return findChangedImpl(achanged, bchanged);
+        return findTreeChanges(achanged, bchanged);
     }
 //
 //    private static Node findChangedOld(Node a, Node b) {
@@ -124,8 +136,9 @@ public class Trees {
 //        return null;
 //    }
 //
-    // Finds the first node with a differing start index in an in-order traversal.
-    private static Node findStartIndexChangedImpl(Node a, Node b) {
+    // Finds offset differences in nodes. These are whitespace changes *between* tokens.
+    // Whitespace changes inside nodes (e.g., in a string) will be reflected in findTreeChanges().
+    private static Node findWhitespaceChanges(Node a, Node b) {
         if (!a.label.equals(b.label)) {
             throw new RuntimeException(String.format("No labels should have changed in findStartChangedImpl: %s (%d), %s (%d)",
                     a.label, a.id, b.label, b.id));
@@ -137,7 +150,7 @@ public class Trees {
         }
         Node changed = null;
         for (int i = 0; i < a.children.size(); ++i) {
-            changed = findStartIndexChangedImpl(a.children.get(i), b.children.get(i));
+            changed = findWhitespaceChanges(a.children.get(i), b.children.get(i));
             if (changed != null) {
                 return changed;
             }

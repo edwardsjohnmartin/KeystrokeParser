@@ -152,33 +152,48 @@ public class App {
 //    }
 
     private static void ts() {
-        var ts = new Tablesaw();
-
-//        final String fileName = "src/main/resources/sample.csv";
-        final String fileName = "/Users/edwards/projects/SQLiteToProgSnap2/parse.csv";
-        Table dataframe = ts.readFile(fileName);
-//        ts.printHeaders(dataframe);
-
-        List<String> keys = ts.createKeys(dataframe);
-//        System.out.println("\nUnique keys in file: " + keys.size());
-//        System.out.println("\n");
-
         //--------------------------------------------------------------------
         // Note: This code relies on changes being local. That is, no single
         // event can have both an insertion and a deletion, and all insertions
         // and deletions are contiguous.
         //--------------------------------------------------------------------
 
-//        final String key = "Student1_Assign12_task1.py";
-        final String key = "student__main.py";
+        var ts = new Tablesaw();
+
+        boolean simpleTest = true;
+
+        String k;
+        String fn;
+        if (simpleTest) {
+            fn = "/Users/edwards/projects/SQLiteToProgSnap2/parse.csv";
+            k = "student__main.py";
+        } else {
+            fn = "src/main/resources/sample.csv";
+            k = "Student1_Assign12_task1.py";
+        }
+        final String fileName = fn;
+        final String key = k;
+        Table dataframe = ts.readFile(fileName);
+        // Debug
+//        ts.printHeaders(dataframe);
+//        List<String> keys = ts.createKeys(dataframe);
+//        System.out.println("\nUnique keys in file: " + keys.size());
+//        System.out.println("\n");
+
+
         Table selection = ts.selectTask(dataframe, key);
         Reconstruction reconstruction = new Reconstruction(selection);
-//        int start=173, len=7;
-//        int start=0, len=14;
-        int start=0, len=26;
-//        int start=33, len=4;
-//        Trees origTrees = new Trees(reconstruction.trees.subList(start, start+len));
-        Trees origTrees = new Trees(reconstruction.trees);
+        Trees origTrees;
+        if (simpleTest) {
+            origTrees = new Trees(reconstruction.trees);
+        } else {
+//            int start = 173, len = 7;
+//            int start = 0, len = 14;
+            int start = 0, len = 26;
+//            int start = 33, len = 4;
+            origTrees = new Trees(reconstruction.trees.subList(start, start + len));
+        }
+
 
 //        Trees origTrees = new Trees(reconstruction.trees);
         origTrees.outputGraphViz("orig.dot");

@@ -199,7 +199,7 @@ public class Node {
         if (replacement.getTparentId() == id) {
             throw new RuntimeException("Unexpectedly trying to replace the root.");
         }
-        replaceImpl(replacement);
+        replaceImpl(replacement, null);
     }
 
     private Node lastChild() {
@@ -207,60 +207,70 @@ public class Node {
         return children.get(children.size()-1);
     }
 
-    private void replaceImpl(Node replacement) {
-        for (int i = 0; i < children.size(); ++i) {
-            Node child = children.get(i);
-            if (replacement.getTparentId() == child.id) {
-                children.set(i, replacement);
-                replacement.parent = this;
-//                if (child.startIndex != replacement.startIndex) {
-//                    System.out.println("child id: "+child.id+" replacement id: "+replacement.id);
-//                    throw new RuntimeException("Start indices unexpectedly different: child="+child.startIndex+" replacement="+replacement.startIndex);
-//                }
+    private class ReplacementResult {
+        /**
+         * How much the start index changed for the node being replaced.
+         */
+        public final int startOffset;
+        /**
+         * How much the length changed for the node being replaced.
+         */
+        public final int lengthOffset;
+        /**
+         * How much subsequent nodes need to update their start offset by.
+         */
+        public final int offset;
+        public ReplacementResult(int startOffset, int lengthOffset) {
+            if (startOffset != 0 && lengthOffset != 0) {
+                throw new RuntimeException("length and startIndex both unexpectedly changed");
+            }
+            if (startOffset == 0 && lengthOffset == 0) {
+                throw new RuntimeException("nothing unexpectedly changed");
+            }
 
-                // Update ranges
-                // There are three things we need to consider in updating ranges:
-                //  1. The replacement node has a different length. This requires updating all
-                //     nodes that come after the replacement, including parents.
-                //  2. The replacement node has shifted to the right (the start index has
-                //     changed).
-//                int addStart = replacement.startIndex - child.startIndex;
-                int addLength = (replacement.length - child.length) + (replacement.startIndex - child.startIndex);
-                Node parent = this;
-                Node tchild = replacement;
-                while (parent != null && tchild == parent.lastChild()) {
-                    parent.length += addLength;
-                    tchild = parent;
-                    parent = parent.parent;
+            this.startOffset = startOffset;
+            this.lengthOffset = lengthOffset;
+            this.offset = startOffset + lengthOffset;
+        }
+    }
+
+    private ReplacementResult replaceImpl(Node replacement, ReplacementResult result) {
+        if (result != null) {
+            // A node ahead of this changed. Update the offset.
+            this.startIndex += result.offset;
+            for (Node child:children) {
+                child.replaceImpl(replacement, result);
+            }
+        } else {
+            boolean firstChild = false;
+            for (int i = 0; i < children.size(); ++i) {
+                Node child = children.get(i);
+                if (replacement.getTparentId() == child.id) {
+                    // We found the node to replace. Do the replacement.
+                    children.set(i, replacement);
+                    replacement.parent = this;
+
+                    result = new ReplacementResult(replacement.startIndex - child.startIndex,
+                            replacement.length - child.length);
+                } else {
+                    result = child.replaceImpl(replacement, result);
                 }
-
-                Node next = getNext();
-                if (next != null) {
-                    if (replacement.nextStartIndex == -1) {
-                        throw new RuntimeException("nextStartIndex unexpectedly -1: "+this.id);
-                    }
-                    System.out.println(String.format("id=%d, next=%d", id, next.id));
-                    final int nextStartOffset = replacement.nextStartIndex - next.startIndex;
-                    strictlyAfter((Node n) -> {n.startIndex += nextStartOffset;});
-                    parent = next.parent;
-                    while (parent != null) {
-                        parent.length += nextStartOffset;
-                        parent = parent.parent;
-                    }
+                if (result != null && i == 0) {
+                    firstChild = true;
                 }
-
-
-                //                List<Node> toUpdate = getDepthFirst();
-//                toUpdate = toUpdate.subList(toUpdate.indexOf(replacement)+1, toUpdate.size());
-//                for (Node n:toUpdate) {
-//                    n.startIndex += addStart+addLength;
-//                }
-//                replacement.parent.updateRanges(addStart, addLength, replacement);
-                return;
-            } else {
-                child.replaceImpl(replacement);
+            }
+            // Changes from unrolling
+            if (result != null) {
+                if (firstChild && result.startOffset != 0) {
+                    // If the start offset of our first child changed then update our start offset.
+                    this.startIndex += result.startOffset;
+                } else {
+                    this.length += result.offset;
+                    result = new ReplacementResult(0, result.offset);
+                }
             }
         }
+        return result;
     }
 
     private void updateRanges(int addStart, int addLength, Node sourceChild) {
