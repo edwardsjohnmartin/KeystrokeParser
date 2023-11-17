@@ -140,6 +140,17 @@ public class Node {
         parent.strictlyAfter(visitor);
     }
 
+    public List<Node> getSiblings() {
+        List<Node> siblings = new ArrayList<>();
+        Node parent = this.parent;
+        if (parent == null) return siblings;
+        for (Node n:parent.children) {
+            if (n != this)
+                siblings.add(n);
+        }
+        return siblings;
+    }
+
     /**
      * Returns a list of nodes in depth-first order.
      * @return
@@ -200,11 +211,6 @@ public class Node {
             throw new RuntimeException("Unexpectedly trying to replace the root.");
         }
         replaceImpl(replacement, null);
-    }
-
-    private Node lastChild() {
-        if (children.isEmpty()) return null;
-        return children.get(children.size()-1);
     }
 
     private class ReplacementResult {
@@ -273,29 +279,6 @@ public class Node {
         return result;
     }
 
-    private void updateRanges(int addStart, int addLength, Node sourceChild) {
-        // The sourceChild is the child that is propagating the change up to this.
-        this.startIndex += addStart;
-        this.length += addLength;
-        int i = children.indexOf(sourceChild);
-        for (int j = i + 1; j < children.size(); ++j) {
-            children.get(j).updateRangesDown(addLength+addStart);
-        }
-        if (parent != null) {
-            parent.updateRanges(addStart, addLength, this);
-        }
-    }
-
-    private void updateRangesDown(int add) {
-        this.startIndex += add;
-//        if (this.startIndex > this.endIndex) {
-//            throw new RuntimeException("updateRangesDown causing a problem");
-//        }
-        for (Node child : this.children) {
-            child.updateRangesDown(add);
-        }
-    }
-
     private Node getNext() {
         if (parent == null) {
             return null;
@@ -348,13 +331,6 @@ public class Node {
             this.nextStartIndex = -1;
         }
     }
-
-    // -------------------------------------------------------
-    // Reconstruction
-    // -------------------------------------------------------
-//    public Node reconstruct(Node source, Node tree) {
-//        return null;
-//    }
 
     // -------------------------------------------------------
     // JSON

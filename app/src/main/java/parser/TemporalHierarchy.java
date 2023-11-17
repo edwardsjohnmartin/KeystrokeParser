@@ -50,7 +50,7 @@ public class TemporalHierarchy {
         this.allIdxInLastSnapshot.add(new ArrayList<>(this.idxInLastSnapshot));
         this.allIdxInLastCompilable.add(new ArrayList<>(this.idxInLastSnapshot));
 
-        if (treeNumber >= 33 && treeNumber <= 38) {
+        if (treeNumber >= 10 && treeNumber <= 15) {
             int sn = this.allIdxInLastSnapshot.size();
             List<Integer> lastMap = this.allIdxInLastSnapshot.get(sn-1);
             System.out.println(String.format("xyz%d (%d) ", treeNumber, lastMap.size()) + lastMap);
@@ -194,17 +194,13 @@ public class TemporalHierarchy {
         // when the previous ast was created
         int ll = -2;
         while (ll >= -allCompilable.size() && !allCompilable.get(allCompilable.size()+ll)) ll--;
-//        System.out.println("Getting start/end " + ll + " " + codeStates.size() + " " + allCompilable);
         int[] indices = this.prev_start_end(cur.startIndex, cur.startIndex + cur.length,
                 this.allIdxInLastCompilable.get(this.allIdxInLastCompilable.size() - 1), codeStates.get(codeStates.size()+ll));
-//        start = indices[0];
-//        end = indices[1];
         int curStartInPrevCoords = indices[0];
         int curEndInPrevCoords = indices[1];
 
         // traverses through prev looking for a tparent for cur
         set_cur_tparent(this.trees.get(this.trees.size()-1), cur, curStartInPrevCoords, curEndInPrevCoords);
-//        set_cur_tparent(cur.parent.tparent, cur, curStartInPrevCoords, curEndInPrevCoords);
 
         // If no tparent was set but it has previous coordinates then it is likely commented out
         // in the previous tree. Iterate back until we either end up with -1 coordinates or find
@@ -220,9 +216,6 @@ public class TemporalHierarchy {
             while (l >= -allCompilable.size() && !allCompilable.get(allCompilable.size()+l)) {
                 l -= 1;
             }
-//            System.out.println(String.format("***** %d %d %d %d %d %d %d", k, l,
-//                    curStartInPrevCoords, curEndInPrevCoords, cur.startIndex, cur.startIndex+cur.length,
-//                    trees.size()));
             indices = prev_start_end(curStartInPrevCoords, curEndInPrevCoords, allIdxInLastCompilable.get(allIdxInLastCompilable.size()+l), codeStates.get(codeStates.size()+l));
             curStartInPrevCoords = indices[0];
             curEndInPrevCoords = indices[1];
@@ -235,42 +228,6 @@ public class TemporalHierarchy {
         for (Node n:cur.children) {
             setTparentImpl(n, codeStates);//asts, n, allIdxInLastCompilable, allCompilable);
         };
-
-        //        // Traverse through the previous tree looking for a valid t-parent
-//        final Node prevTree = this.trees.get(this.trees.size() - 1);
-//        this.setTparent(prevTree, tree, start, end);
-
-        /* TODO: broken as this is no longer true with parse trees */
-        // // If no t-parent was found but the node has previous coordinates then
-        // // it is likely commented out in the previous tree. Iterate backwards
-        // // until we either find a t-parent or the original node (-1 coordinates)
-        // int k = -1;
-        // int l = -1;
-        // while (tree.tparent == null && start > -1) {
-        // k -= 1;
-        // l -= 1;
-
-        // try {
-        // while (l >= -this.allCompilable.size() && !this.allCompilable.get(l)) {
-        // l -= 1;
-        // }
-        // } catch (Exception e) {
-        // System.out.println("Node " + tree.label);
-        // System.out.println("Expected old coordinates " + start + ", " + end);
-        // var x = 1 / 0;
-        // }
-
-        // indicies = this.previousStartEndIndicies(start, end,
-        // this.allIdxInLastCompilable.get(l));
-        // start = indicies[0];
-        // end = indicies[1];
-        // this.setTparent(this.trees.get(k), tree, start, end);
-        // }
-
-//        // Make recursive call for all of our children
-//        for (Node child : node.children) {
-//            this.setAllTparents(child);
-//        }
     }
 
     void set_cur_tparent(Node prev, Node cur, int curStartInPrevCoords, int curEndInPrevCoords) {
@@ -306,33 +263,6 @@ public class TemporalHierarchy {
                 set_cur_tparent(n, cur, curStartInPrevCoords, curEndInPrevCoords);
             }
         }
-    }
-
-    private void setCurTparent(Node prevTree, Node tree, int start, int end) {
-        /* TODO: not working some reason */
-//        final boolean contains = (prevTree.startIndex <= start && prevTree.endIndex >= end);
-        final boolean contains = (prevTree.startIndex <= start && prevTree.startIndex + prevTree.length >= end);
-         if (!contains) {
-             return;
-         }
-
-        // if the node type is the same, assume it is the parent
-        final boolean sameType = Objects.equals(prevTree.label, tree.label);
-        if (prevTree.tchild == null && tree.tparent == null && sameType) {
-            tree.tparent = prevTree;
-            prevTree.tchild = tree;
-            tree.numInserts = prevTree.numInserts;
-            tree.numDeletes = prevTree.numDeletes;
-        }
-
-        // go deeper to see if there is a better fit
-        if (prevTree.children.isEmpty()) {
-            return;
-        }
-        for (Node child : prevTree.children) {
-            this.set_cur_tparent(child, tree, start, end);
-        }
-
     }
 
     /* Return a tuple of (start, end) */

@@ -55,9 +55,6 @@ public class Trees {
             // The tree structure didn't change. We need to
             // check for anything that might have moved.
             changed = findWhitespaceChanges(tparent, node);
-//            if (changed != null) {
-//                System.out.println("Whitespace change");
-//            }
         }
         // Changed nodes must have a tparent
         if (changed != null) {
@@ -65,6 +62,32 @@ public class Trees {
                 changed = changed.parent;
             }
         }
+        // Now check to see if any sibling nodes or their descendants lost a
+        // tparent. This can happen when we're exiting a period of uncompilability
+        // and a node was removed and re-added in that period. If one of these other
+        // nodes lost a tparent then we need to move our changed node to a
+        // common ancestor.
+        if (changed != null) {
+            Node curNode = changed;
+            while (curNode != null) {
+                List<Node> orphanedNodes = new ArrayList<>();
+                for (Node s : curNode.getSiblings()) {
+                    s.postOrder((Node d) -> {
+                        if (d.tparent == null) {
+                            orphanedNodes.add(d);
+                        }
+                    });
+                }
+                if (!orphanedNodes.isEmpty()) {
+                    changed = curNode.parent;
+                }
+                curNode = curNode.parent;
+            }
+            while (changed != null && changed.tparent == null) {
+                changed = changed.parent;
+            }
+        }
+
         return changed;
     }
 
@@ -106,36 +129,7 @@ public class Trees {
         }
         return findTreeChanges(achanged, bchanged);
     }
-//
-//    private static Node findChangedOld(Node a, Node b) {
-//        Node changed = findChangedOldImpl(a, b);
-//        if (changed == null) {
-//            // We need to check for anything that might have moved.
-//            changed = findStartChangedImpl(a, b);
-//        }
-//        return changed;
-//    }
-//
-//    // Finds the first node with a label difference in a top-down traversal.
-//    private static Node findChangedOldImpl(Node a, Node b) {
-//        if (!a.label.equals(b.label)) {
-//            return b;
-//        }
-//        if (a.label.equals("Terminal")) {
-//            if (!a.text.equals(b.text)) {
-//                return b;
-//            }
-//        }
-//        Node changed = null;
-//        for (int i = 0; i < a.children.size(); ++i) {
-//            changed = findChangedImpl(a.children.get(i), b.children.get(i));
-//            if (changed != null) {
-//                return changed;
-//            }
-//        }
-//        return null;
-//    }
-//
+
     // Finds offset differences in nodes. These are whitespace changes *between* tokens.
     // Whitespace changes inside nodes (e.g., in a string) will be reflected in findTreeChanges().
     private static Node findWhitespaceChanges(Node a, Node b) {
@@ -160,7 +154,6 @@ public class Trees {
         }
         return null;
     }
-
 
     public Trees prune() {
         List<Node> prunedTrees = new ArrayList<>();
