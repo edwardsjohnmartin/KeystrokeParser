@@ -3,19 +3,9 @@
  */
 package parser;
 
-import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-
-import parser.antlr.PythonLexer;
-import parser.antlr.PythonParser;
-import parser.antlr.PythonParser.RootContext;
 import tech.tablesaw.api.Table;
 
 public class App {
@@ -50,8 +40,8 @@ public class App {
         // origTrees.add(MyVisitor.toSimpleTree(Parser.createTreeFromFile("src/main/resources/test1/2.py")));
 //        origTrees.add(MyVisitor.toSimpleTree(Parser.createTreeFromFile("src/main/resources/test1/3.py")));
 //        origTrees.add(MyVisitor.toSimpleTree(Parser.createTreeFromFile("src/main/resources/test1/4.py")));
-        origTrees.add(MyVisitor.toSimpleTree(Parser.createTreeFromFile("src/main/resources/test2/1.py")));
-        origTrees.add(MyVisitor.toSimpleTree(Parser.createTreeFromFile("src/main/resources/test2/2.py")));
+//        origTrees.add(MyVisitor.toSimpleTree(Parser.createTreeFromFile("src/main/resources/test2/1.py"), src));
+//        origTrees.add(MyVisitor.toSimpleTree(Parser.createTreeFromFile("src/main/resources/test2/2.py"), src));
         outputGraphViz(origTrees);
 
 //        outputGraphViz(findChanged(origTrees.get(0), origTrees.get(1)));

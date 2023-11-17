@@ -56,7 +56,8 @@ public class Reconstruction {
         Node tree = null;
         String errorMessage = null;
         try {
-            tree = MyVisitor.toSimpleTree(Parser.createTree(codeStates.get(codeStates.size() - 1)));
+            String src = codeStates.get(codeStates.size() - 1);
+            tree = MyVisitor.toSimpleTree(Parser.createTree(src), src);
         } catch (RuntimeException parseError) {
             errorMessage = parseError.getMessage();
         }

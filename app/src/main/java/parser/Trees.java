@@ -79,7 +79,7 @@ public class Trees {
         for (int i = 0; i < tparent.children.size(); ++i) {
             Node achild = tparent.children.get(i);
             Node bchild = node.children.get(i);
-            if (!achild.text.equals(bchild.text)) {
+            if (!achild.getSource().equals(bchild.getSource())) {
                 if (achanged == null) {
                     achanged = achild;
                     bchanged = bchild;
@@ -131,7 +131,7 @@ public class Trees {
                     a.label, a.id, b.label, b.id));
         }
         if (a.label.equals("Terminal")) {
-            if (!a.text.equals(b.text)) {
+            if (!a.getSource().equals(b.getSource())) {
                 throw new RuntimeException("No labels should have changed in findStartChangedImpl");
             }
         }

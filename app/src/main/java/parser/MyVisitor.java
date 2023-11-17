@@ -9,7 +9,7 @@ import java.util.List;
 
 public class MyVisitor {
 
-    public static Node toSimpleTree(PythonParser.RootContext ctx) {
+    public static Node toSimpleTree(PythonParser.RootContext ctx, final String src) {
         // final int id = nextId();
         final String label = ctx.getClass().getSimpleName();
         final int startIndex = ctx.getStart().getStartIndex();
@@ -21,16 +21,17 @@ public class MyVisitor {
             return null;
         }
 
-        Node n = toSimpleTreeImpl(ctx, label, startIndex, stopIndex, length);
+        Node n = toSimpleTreeImpl(ctx, label, startIndex, stopIndex, length, src);
         n.setIsReference(true);
         return n;
     }
 
     private static Node toSimpleTreeImpl(ParserRuleContext tree,
-            String parentLabel,
-            int parentStartIndex,
-            int parentStopIndex,
-            int parentLength) {
+                                         String parentLabel,
+                                         int parentStartIndex,
+                                         int parentStopIndex,
+                                         int parentLength,
+                                         final String src) {
 
         List<Node> children = new ArrayList<>();
 
@@ -44,7 +45,7 @@ public class MyVisitor {
                 final int childLength = childStopIndex - childStartIndex + 1;
 
                 final Node childNode = toSimpleTreeImpl(child, childLabel, childStartIndex, childStopIndex,
-                        childLength);
+                        childLength, src);
                 children.add(childNode);
             } else {
                 TerminalNode child = (TerminalNode) tree.getChild(i);
@@ -66,11 +67,11 @@ public class MyVisitor {
                 }
 
                 final Node childNode = new Node(childLabel, childStartIndex, childStopIndex, child.toString().length(),
-                        new ArrayList<>(), child.toString());
+                        new ArrayList<>(), src);
                 children.add(childNode);
             }
         }
 
-        return new Node(parentLabel, parentStartIndex, parentStopIndex, parentLength, children, tree.getText());
+        return new Node(parentLabel, parentStartIndex, parentStopIndex, parentLength, children, src);
     }
 }

@@ -37,12 +37,14 @@ public class Node {
     public Node parent = null;
 //    public int tparentId = -1;
     public boolean reference = false;
-    public final String text;
+    private final String text;
+
+    private final String src;
     // The starting character index of the next node. This is used in
     // pruning and reconstruction.
     public int nextStartIndex = -1;
 
-    public Node(String label, int startIndex, int endIndex, int length, List<Node> children, String text) {
+    public Node(String label, int startIndex, int endIndex, int length, List<Node> children, String src) {
         this.id = nextId();
         this.label = label;
         if (startIndex > endIndex || endIndex-startIndex+1 != length) {
@@ -52,7 +54,12 @@ public class Node {
 //        this.endIndex = endIndex;
         this.length = length;
         this.children = new ArrayList<>(children);
+        String text = null;
+        if (Objects.equals(label, "Terminal")) {
+            text = src.substring(startIndex, startIndex+length);
+        }
         this.text = text;
+        this.src = src;
 
         for (Node child : this.children) {
             child.parent = this;
@@ -72,6 +79,7 @@ public class Node {
         this.length = copy.length;
         this.children = new ArrayList<>();
         this.text = copy.text;
+        this.src = null;
         this.tparent = copy;
 
         for (Node child : copy.children) {
@@ -97,6 +105,10 @@ public class Node {
             }
         }
         return true;
+    }
+
+    public String getSource() {
+        return this.src.substring(startIndex, startIndex+length);
     }
 
     /**
@@ -404,7 +416,7 @@ public class Node {
     }
 
     public String toString() {
-        return this.text;
+        return this.text != null ? this.text : this.label;
     }
 
     private String debugNode(String offset) {
