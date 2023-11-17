@@ -50,6 +50,12 @@ public class TemporalHierarchy {
         this.allIdxInLastSnapshot.add(new ArrayList<>(this.idxInLastSnapshot));
         this.allIdxInLastCompilable.add(new ArrayList<>(this.idxInLastSnapshot));
 
+        if (treeNumber >= 33 && treeNumber <= 38) {
+            int sn = this.allIdxInLastSnapshot.size();
+            List<Integer> lastMap = this.allIdxInLastSnapshot.get(sn-1);
+            System.out.println(String.format("xyz%d (%d) ", treeNumber, lastMap.size()) + lastMap);
+        }
+
         // exit if the last tree was compilable
         if (this.allCompilable.size() > 1 && (this.allCompilable.get(this.allCompilable.size() - 2))) {
             return;
@@ -68,11 +74,11 @@ public class TemporalHierarchy {
         }
     }
 
-    public void temporalHierarchy(Node tree) {
+    public void temporalHierarchy(Node tree, List<String> codeStates) {
         // Update tid values. trees is the list of all prase trees to this point.
         this.setTids(tree);
         if (!trees.isEmpty()) {
-            this.setAllTparents(tree);
+            this.setTparentImpl(tree, codeStates);
         }
         this.trees.add(tree);
 
@@ -131,7 +137,7 @@ public class TemporalHierarchy {
             }
 
             int start = tree.startIndex;
-            int end = tree.getEndIndex();
+            int end = tree.getEndInclusiveIndex();
             // int end = tree.tparent.length + tree.tparent.startIndex - 1;
             int oldSize = tree.tparent.length;
 
@@ -177,21 +183,62 @@ public class TemporalHierarchy {
         }
     }
 
-    private void setAllTparents(Node tree) {
-        // Get the current indicies for the tree node
-        int start = tree.startIndex;
-        int end = tree.getEndIndex();
-
+    /**
+     * Sets the tparent for cur and all cur's descendants.
+     *
+     * @param cur
+     * @param codeStates
+     */
+    private void setTparentImpl(Node cur, List<String> codeStates) {
         // Get the start and end indices in the code as it was
         // when the previous ast was created
-        int[] indicies = this.previousStartEndIndicies(start, end,
-                this.allIdxInLastCompilable.get(this.allIdxInLastCompilable.size() - 1));
-        start = indicies[0];
-        end = indicies[1];
+        int ll = -2;
+        while (ll >= -allCompilable.size() && !allCompilable.get(allCompilable.size()+ll)) ll--;
+//        System.out.println("Getting start/end " + ll + " " + codeStates.size() + " " + allCompilable);
+        int[] indices = this.prev_start_end(cur.startIndex, cur.startIndex + cur.length,
+                this.allIdxInLastCompilable.get(this.allIdxInLastCompilable.size() - 1), codeStates.get(codeStates.size()+ll));
+//        start = indices[0];
+//        end = indices[1];
+        int curStartInPrevCoords = indices[0];
+        int curEndInPrevCoords = indices[1];
 
-        // Traverse through the previous tree looking for a valid t-parent
-        final Node prevTree = this.trees.get(this.trees.size() - 1);
-        this.setTparent(prevTree, tree, start, end);
+        // traverses through prev looking for a tparent for cur
+        set_cur_tparent(this.trees.get(this.trees.size()-1), cur, curStartInPrevCoords, curEndInPrevCoords);
+//        set_cur_tparent(cur.parent.tparent, cur, curStartInPrevCoords, curEndInPrevCoords);
+
+        // If no tparent was set but it has previous coordinates then it is likely commented out
+        // in the previous tree. Iterate back until we either end up with -1 coordinates or find
+        // a tparent.
+        int k = -1;
+        int l = -1;
+        while (trees.size() >= -k && cur.tparent == null && !cur.label.equals("RootContext") && curStartInPrevCoords > -1) {
+            if (curEndInPrevCoords == -1) {
+                throw new RuntimeException("Unexpected -1 prev coords");
+            }
+            k -= 1;
+            l -= 1;
+            while (l >= -allCompilable.size() && !allCompilable.get(allCompilable.size()+l)) {
+                l -= 1;
+            }
+//            System.out.println(String.format("***** %d %d %d %d %d %d %d", k, l,
+//                    curStartInPrevCoords, curEndInPrevCoords, cur.startIndex, cur.startIndex+cur.length,
+//                    trees.size()));
+            indices = prev_start_end(curStartInPrevCoords, curEndInPrevCoords, allIdxInLastCompilable.get(allIdxInLastCompilable.size()+l), codeStates.get(codeStates.size()+l));
+            curStartInPrevCoords = indices[0];
+            curEndInPrevCoords = indices[1];
+            if (trees.size() >= -k) {
+                set_cur_tparent(trees.get(trees.size() + k), cur, curStartInPrevCoords, curEndInPrevCoords);
+            }
+        }
+
+        // Make recursive call for all of cur's children
+        for (Node n:cur.children) {
+            setTparentImpl(n, codeStates);//asts, n, allIdxInLastCompilable, allCompilable);
+        };
+
+        //        // Traverse through the previous tree looking for a valid t-parent
+//        final Node prevTree = this.trees.get(this.trees.size() - 1);
+//        this.setTparent(prevTree, tree, start, end);
 
         /* TODO: broken as this is no longer true with parse trees */
         // // If no t-parent was found but the node has previous coordinates then
@@ -220,19 +267,54 @@ public class TemporalHierarchy {
         // this.setTparent(this.trees.get(k), tree, start, end);
         // }
 
-        // Make recursive call for all of our children
-        for (Node child : tree.children) {
-            this.setAllTparents(child);
+//        // Make recursive call for all of our children
+//        for (Node child : node.children) {
+//            this.setAllTparents(child);
+//        }
+    }
+
+    void set_cur_tparent(Node prev, Node cur, int curStartInPrevCoords, int curEndInPrevCoords) {
+//        if (cur.label.equals("RootContext")) {
+//            return;
+//        }
+
+        boolean deeper = true;
+        final int pstarti = prev.startIndex;
+        final int pendi = prev.startIndex + prev.length;
+        final boolean contains = (pstarti <= curStartInPrevCoords && pendi >= curEndInPrevCoords);
+//        if (!prev.label.equals("RootContext") && contains) {
+        if (contains) {
+            // Only set the parent if the types are the same or if one of them is an identifier
+//            if (prev.label.equals(cur.label) || (prev.type === 'Name' || cur.type === 'Name')) {
+            // Identifiers leaf nodes are always "Terminal" labels, so even though the identifier changes,
+            // the label doesn't.
+            if (prev.label.equals(cur.label) && prev.tchild == null) {
+                if (cur.tparent != null) {
+                    cur.tparent.tchild = null;
+                }
+                cur.tparent = prev;
+                prev.tchild = cur;
+                cur.numInserts = prev.numInserts;
+                cur.numDeletes = prev.numDeletes;
+            }
+        }
+        // Go deeper if the current node is smaller then the prev node to see if there
+        // is a better fit.
+        // deeper = (curStartInPrevCoords >= pstarti && curEndInPrevCoords <= pendi);
+        if (contains) {
+            for (Node n:prev.children) {
+                set_cur_tparent(n, cur, curStartInPrevCoords, curEndInPrevCoords);
+            }
         }
     }
 
-    private void setTparent(Node prevTree, Node tree, int start, int end) {
+    private void setCurTparent(Node prevTree, Node tree, int start, int end) {
         /* TODO: not working some reason */
-        // final boolean contains = (prevTree.startIndex <= start && prevTree.endIndex
-        // >= end);
-        // if (!contains) {
-        // return;
-        // }
+//        final boolean contains = (prevTree.startIndex <= start && prevTree.endIndex >= end);
+        final boolean contains = (prevTree.startIndex <= start && prevTree.startIndex + prevTree.length >= end);
+         if (!contains) {
+             return;
+         }
 
         // if the node type is the same, assume it is the parent
         final boolean sameType = Objects.equals(prevTree.label, tree.label);
@@ -248,30 +330,68 @@ public class TemporalHierarchy {
             return;
         }
         for (Node child : prevTree.children) {
-            this.setTparent(child, tree, start, end);
+            this.set_cur_tparent(child, tree, start, end);
         }
 
     }
 
     /* Return a tuple of (start, end) */
-    private int[] previousStartEndIndicies(int start, int end, List<Integer> lastCompilable) {
-        // Use the last snapshot to find the old indicies
-        while (start < end && start < lastCompilable.size() && lastCompilable.get(start) == -1) {
-            start += 1;
+    private int[] prev_start_end(int start, int end, List<Integer> idxInLastSnapshot, String codeState) {
+        int n = idxInLastSnapshot.size();
+        // let i: number = node.start;
+        // let j: number = node.end - 1; // node.end is one past the last character, so get the last character
+        int i = start;
+        int j = end - 1; // node.end is one past the last character, so get the last character
+        // Iterate past newly-added characters to the beginning then the end of the node
+        while (idxInLastSnapshot.get(i) == -1 && i < j) {
+            i += 1;
         }
-        while (start < end && end > 0 && lastCompilable.get(end) == -1) {
-            end -= 1;
+        while (idxInLastSnapshot.get(j) == -1 && i < j) {
+            j -= 1;
         }
 
-        // Get the start/end for the previous snapshot
-        // Add `1` to the end as it moves backwards one too much
-        final int previousStart = lastCompilable.get(start);
-        final int previousEnd = lastCompilable.get(end) + 1;
+        int prev_start = idxInLastSnapshot.get(i);
+        int prev_end_minus_one = idxInLastSnapshot.get(j);
 
-        if (previousStart == -1 && previousEnd == -1) {
-            return new int[] { -1, -1 };
+        if (prev_start == prev_end_minus_one) {
+            if (prev_start == -1) {
+                return new int[] {-1, -1};
+            }
+            return new int[] {prev_start, prev_end_minus_one + 1};
         } else {
-            return new int[] { previousStart, previousEnd };
+            if (prev_start == -1 || prev_end_minus_one == -1) {
+                // Either both indices must be -1 (a new node) or they must both point to valid character
+                throw new RuntimeException("Illegal previous indices");
+            }
+            // It is possible that the text from start to end includes whitespace which won't be
+            // represented in the start/end of the previous node.
+            while (Character.isWhitespace(codeState.charAt(prev_start)) && prev_start < prev_end_minus_one) {
+                prev_start++;
+            }
+            while (Character.isWhitespace(codeState.charAt(prev_end_minus_one)) && prev_start < prev_end_minus_one) {
+                prev_end_minus_one--;
+            }
+
+            return new int[] {prev_start, prev_end_minus_one + 1};
         }
+//        private int[] previousStartEndIndices(int start, int end, List<Integer> lastCompilable) {
+//        // Use the last snapshot to find the old indicies
+//        while (start < end && start < lastCompilable.size() && lastCompilable.get(start) == -1) {
+//            start += 1;
+//        }
+//        while (start < end && end > 0 && lastCompilable.get(end) == -1) {
+//            end -= 1;
+//        }
+//
+//        // Get the start/end for the previous snapshot
+//        // Add `1` to the end as it moves backwards one too much
+//        final int previousStart = lastCompilable.get(start);
+//        final int previousEnd = lastCompilable.get(end) + 1;
+//
+//        if (previousStart == -1 && previousEnd == -1) {
+//            return new int[] { -1, -1 };
+//        } else {
+//            return new int[] { previousStart, previousEnd };
+//        }
     }
 }

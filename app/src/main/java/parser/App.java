@@ -164,7 +164,8 @@ public class App {
     private static void ts() {
         var ts = new Tablesaw();
 
-        final String fileName = "src/main/resources/sample.csv";
+//        final String fileName = "src/main/resources/sample.csv";
+        final String fileName = "/Users/edwards/projects/SQLiteToProgSnap2/parse.csv";
         Table dataframe = ts.readFile(fileName);
 //        ts.printHeaders(dataframe);
 
@@ -172,16 +173,27 @@ public class App {
 //        System.out.println("\nUnique keys in file: " + keys.size());
 //        System.out.println("\n");
 
-        final String key = "Student1_Assign12_task1.py";
+        //--------------------------------------------------------------------
+        // Note: This code relies on changes being local. That is, no single
+        // event can have both an insertion and a deletion, and all insertions
+        // and deletions are contiguous.
+        //--------------------------------------------------------------------
+
+//        final String key = "Student1_Assign12_task1.py";
+        final String key = "student__main.py";
         Table selection = ts.selectTask(dataframe, key);
         Reconstruction reconstruction = new Reconstruction(selection);
 //        int start=173, len=7;
-//        int start=13, len=2;
-        int start=33, len=4;
-        Trees origTrees = new Trees(reconstruction.trees.subList(start, start+len));
+//        int start=0, len=14;
+        int start=0, len=26;
+//        int start=33, len=4;
+//        Trees origTrees = new Trees(reconstruction.trees.subList(start, start+len));
+        Trees origTrees = new Trees(reconstruction.trees);
+
 //        Trees origTrees = new Trees(reconstruction.trees);
         origTrees.outputGraphViz("orig.dot");
 //        origTrees.outputJSON();
+
         Trees prunedTrees = origTrees.prune();
         prunedTrees.outputGraphViz("pruned.dot");
         Trees reconTrees = prunedTrees.reconstructFromPruned();

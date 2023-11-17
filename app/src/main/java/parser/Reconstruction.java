@@ -65,8 +65,17 @@ public class Reconstruction {
         correspondance.allCompilable.add(tree != null);
         correspondance.temporalCorrespondence(i, this.trees.size(), insertText, deleteText);
         if (tree != null) {
-            correspondance.temporalHierarchy(tree);
+            correspondance.temporalHierarchy(tree, this.codeStates);
         }
+
+//        // Check for bugs
+//        Node tparent = null;
+//        for (Node n:this.trees) {
+//            if (n != null) tparent = n;
+//        }
+//        if (tree != null && tparent != null)
+//            tree.checkTParents(tparent);
+
         this.trees.add(tree);
     }
 

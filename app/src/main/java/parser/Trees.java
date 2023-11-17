@@ -52,8 +52,15 @@ public class Trees {
     private static Node findChanged(Node tparent, Node node) {
         Node changed = findChangedImpl(tparent, node);
         if (changed == null) {
-            // We need to check for anything that might have moved.
+            // The tree structure didn't change. We need to
+            // check for anything that might have moved.
             changed = findStartIndexChangedImpl(tparent, node);
+        }
+        // Changed nodes must have a tparent
+        if (changed != null) {
+            while (changed != null && changed.tparent == null) {
+                changed = changed.parent;
+            }
         }
         return changed;
     }
@@ -158,7 +165,7 @@ public class Trees {
             for (int i = start; i < trees.size() - 1; ++i) {
                 int previ = i;
                 int curi = i + 1;
-                System.out.println(i);
+                System.out.println("prune: " + i);
                 Node tparent = trees.get(previ);
                 // If the tparent is null (uncompilable), then use the last
                 // compilable snapshot.

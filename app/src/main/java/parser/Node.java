@@ -100,12 +100,12 @@ public class Node {
     }
 
     /**
-     * Depth-first traversal
+     * Post-order traversal
      * @param visitor
      */
-    public void depthFirst(Visitor visitor) {
+    public void postOrder(Visitor visitor) {
         for (Node child:children) {
-            child.depthFirst(visitor);
+            child.postOrder(visitor);
         }
         visitor.visit(this);
     }
@@ -123,7 +123,7 @@ public class Node {
         }
         int i = parent.children.indexOf(this)+1;
         for (; i < parent.children.size(); ++i) {
-            parent.children.get(i).depthFirst(visitor);
+            parent.children.get(i).postOrder(visitor);
         }
         parent.strictlyAfter(visitor);
     }
@@ -134,11 +134,38 @@ public class Node {
      */
     public List<Node> getDepthFirst() {
         List<Node> nodes = new ArrayList<>();
-        depthFirst((Node n) -> {nodes.add(n);});
+        postOrder((Node n) -> {nodes.add(n);});
         return nodes;
     }
 
-    public int getEndIndex() {
+    public Node find(int id) {
+        List<Node> nodes = new ArrayList<>();
+        postOrder((Node n) -> {
+           if (n.id == id) {
+               nodes.add(n);
+           }
+        });
+        if (nodes.isEmpty()) return null;
+        if (nodes.size() == 1) {
+            return nodes.get(0);
+        }
+        throw new RuntimeException("Multiple nodes with id " + id);
+    }
+
+    // Iterates through each node and ensures that if each node has
+    // a temporal parent, it exists in the tparentTree.
+    public void checkTParents(final Node tparentTree) {
+        postOrder((Node n) -> {
+            final int tp = n.getTparentId();
+            if (tp != -1) {
+                if (tparentTree.find(tp) == null) {
+                    throw new RuntimeException(String.format("%d not found in tree", tp));
+                }
+            }
+        });
+    }
+
+    public int getEndInclusiveIndex() {
         return this.startIndex + this.length - 1;
     }
 
@@ -180,8 +207,13 @@ public class Node {
 //                }
 
                 // Update ranges
+                // There are three things we need to consider in updating ranges:
+                //  1. The replacement node has a different length. This requires updating all
+                //     nodes that come after the replacement, including parents.
+                //  2. The replacement node has shifted to the right (the start index has
+                //     changed).
 //                int addStart = replacement.startIndex - child.startIndex;
-                int addLength = replacement.length - child.length;
+                int addLength = (replacement.length - child.length) + (replacement.startIndex - child.startIndex);
                 Node parent = this;
                 Node tchild = replacement;
                 while (parent != null && tchild == parent.lastChild()) {
@@ -354,12 +386,12 @@ public class Node {
     }
 
     private void nodeToDot(StringBuffer buf, String prefix) {
-        if (label != "Terminal") {
+        if (!Objects.equals(label, "Terminal")) {
             buf.append(
-                    String.format("%s%d [label = \"%s\\n%d, %d-%d, tp=%d\"];\n", prefix, id, label, id, startIndex, getEndIndex(), getTparentId()));
+                    String.format("%s%d [label = \"%s\\n%d, %d-%d, tp=%d\"];\n", prefix, id, label, id, startIndex, getEndInclusiveIndex(), getTparentId()));
         } else {
             buf.append(
-                    String.format("%s%d [label = \"%s\\n%d, %d-%d, tp=%d\"];\n", prefix, id, text, id, startIndex, getEndIndex(), getTparentId()));
+                    String.format("%s%d [label = \"%s\\n%d, %d-%d, tp=%d\"];\n", prefix, id, text, id, startIndex, getEndInclusiveIndex(), getTparentId()));
         }
         // if (this.tparent != null) {
         // buf.append(String.format("n%s->n%s [style=dashed]\n", this.id,
@@ -380,7 +412,7 @@ public class Node {
                 + "Label: `" + this.label + "`"
                 + " | Name: `" + this.toString() + "`"
                 + " | Start: " + this.startIndex
-                + " | End: " + this.getEndIndex()
+                + " | End: " + this.getEndInclusiveIndex()
                 + " | Inserts: " + this.numInserts
                 + " | Deletes: " + this.numDeletes;
 //                + " | tid: " + tid;
