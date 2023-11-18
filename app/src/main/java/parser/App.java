@@ -189,7 +189,7 @@ public class App {
         } else {
 //            int start = 173, len = 7;
 //            int start = 0, len = 14;
-            int start = 0, len = 36;
+            int start = 30, len = 50;
 //            int start = 33, len = 4;
 //            origTrees = new Trees(reconstruction.trees.subList(start, start + len));
             origTrees = new Trees(reconstruction.trees);

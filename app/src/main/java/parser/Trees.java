@@ -67,7 +67,6 @@ public class Trees {
         // This is the only spacing we need to check since if other spacings changed
         // it will be caught in findTreeChanges.
         if (changed != null) {
-            Node next = changed.getNext();
             final int dist = changed.tparent.getNext().startIndex - changed.tparent.startIndex;
             final int dist2 = changed.getNext().startIndex - changed.startIndex;
             if (dist - changed.tparent.length != dist2 - changed.length) {
@@ -125,6 +124,7 @@ public class Trees {
         for (int i = 0; i < tparent.children.size(); ++i) {
             Node achild = tparent.children.get(i);
             Node bchild = node.children.get(i);
+            if (achild != bchild.tparent) return node;
             if (!achild.getSource().equals(bchild.getSource())) {
                 if (achanged == null) {
                     achanged = achild;
