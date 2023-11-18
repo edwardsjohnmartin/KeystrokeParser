@@ -62,6 +62,19 @@ public class Trees {
                 changed = changed.parent;
             }
         }
+        // It is possible that the spacing between the changed node and the next
+        // node changed. If it did, graduate the changed node to a common ancestor.
+        // This is the only spacing we need to check since if other spacings changed
+        // it will be caught in findTreeChanges.
+        if (changed != null) {
+            Node next = changed.getNext();
+            final int dist = changed.tparent.getNext().startIndex - changed.tparent.startIndex;
+            final int dist2 = changed.getNext().startIndex - changed.startIndex;
+            if (dist - changed.tparent.length != dist2 - changed.length) {
+                changed = changed.getNext().parent;
+            }
+        }
+
         // Now check to see if any sibling nodes or their descendants lost a
         // tparent. This can happen when we're exiting a period of uncompilability
         // and a node was removed and re-added in that period. If one of these other

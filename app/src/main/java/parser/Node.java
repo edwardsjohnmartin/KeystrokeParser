@@ -279,7 +279,7 @@ public class Node {
         return result;
     }
 
-    private Node getNext() {
+    public Node getNext() {
         if (parent == null) {
             return null;
         }
@@ -330,6 +330,10 @@ public class Node {
         } else {
             this.nextStartIndex = -1;
         }
+    }
+
+    private int getSpaceBeforeNextNode() {
+        return (this.nextStartIndex-this.startIndex)-this.length;
     }
 
     // -------------------------------------------------------
