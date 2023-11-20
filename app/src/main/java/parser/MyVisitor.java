@@ -56,8 +56,6 @@ public class MyVisitor {
                 }
 
                 final String childLabel = "Terminal";
-                // final int childStartIndex = ((ParserRuleContext)
-                // child.getParent()).getStart().getStartIndex();
                 int childStartIndex = child.getSymbol().getStartIndex();
                 int childStopIndex = child.getSymbol().getStopIndex();
 

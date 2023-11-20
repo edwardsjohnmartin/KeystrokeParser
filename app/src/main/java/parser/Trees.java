@@ -9,13 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Trees {
-    private final List<Node> trees;// = new ArrayList<>();
-
-//    public Trees(Reconstruction reconstruction) {
-////        int num = 7;
-////        this.trees = reconstruction.trees.subList(173, 173+num);
-//        this.trees = reconstruction.trees;
-//    }
+    private final List<Node> trees;
 
     public Trees(List<Node> trees) {
         this.trees = trees;
@@ -36,10 +30,6 @@ public class Trees {
                 trees.add(this.trees.get(i));
                 trees.add(reconTrees.trees.get(i));
                 trees.outputGraphViz("not-equal.dot");
-//                System.out.println("digraph G {");
-//                System.out.println(this.trees.get(i).toDot("o"));
-//                System.out.println(reconTrees.trees.get(i).toDot("r"));
-//                System.out.println("}");
                 throw new RuntimeException("Reconstructed tree at index " + i + " is incorrect.");
             }
         }
@@ -49,6 +39,12 @@ public class Trees {
         this.trees.add(tree);
     }
 
+    /**
+     * Recursively look through two trees, tparent and node, to find
+     * @param tparent
+     * @param node
+     * @return
+     */
     private static Node findChanged(Node tparent, Node node) {
         Node changed = findTreeChanges(tparent, node);
         if (changed == null) {
@@ -210,7 +206,6 @@ public class Trees {
         List<Node> prunedTrees = this.trees;
         List<Node> reconTrees = new ArrayList<>();
         for (int i = 0; i < prunedTrees.size(); ++i) {
-//        for (Node pruned : prunedTrees) {
             Node pruned = prunedTrees.get(i);
             System.out.println("Reconstructing pruned tree " + i);
             if (pruned == null) {
@@ -245,15 +240,11 @@ public class Trees {
         for (int i = 0; i < trees.size(); ++i) {
             Node tree = trees.get(i);
             if (tree != null) {
-//                System.out.println(tree.toDot(String.format("%s", Character.toString((char) (((int) 'a') + i)))));
-//                System.out.println(tree.toDot(String.format("t%d_", i)));
                 buf.append(tree.toDot(String.format("t%d_", i))+"\n");
             } else {
-//                System.out.println(String.format("null%d [label = null]", i));
                 buf.append(String.format("null%d [label = null]\n", i));
             }
         }
-//        System.out.println("}");
         buf.append("}\n");
 
         FileWriter myWriter = null;

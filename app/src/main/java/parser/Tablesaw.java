@@ -62,6 +62,27 @@ public class Tablesaw {
         return Table.read().usingOptions(options);
     }
 
+    public Table readFileTest(final String fileName) {
+//        ColumnType[] types = {
+//                ColumnType.STRING, // Key
+//                ColumnType.STRING, // EditType
+//                ColumnType.INTEGER, // SourceLocation
+//                ColumnType.STRING, // InsertText
+//                ColumnType.STRING, // DeleteText
+//                ColumnType.LONG, // ClientTimestamp
+//        };
+        CsvReadOptions options = CsvReadOptions.builder(fileName)
+                .maxCharsPerColumn(32768)
+                .separator(',')
+                .header(true)
+//                .columnTypes(types)
+                .quoteChar('"')
+                .missingValueIndicator("NaN")
+                .build();
+
+        return Table.read().usingOptions(options);
+    }
+
     public void writeFile(final Table dataframe, final String fileName) {
         CsvWriteOptions options = CsvWriteOptions.builder(fileName)
                 .separator(',')
@@ -106,5 +127,9 @@ public class Tablesaw {
     public Table selectTask(final Table dataframe, final String key) {
         return dataframe.where(dataframe.stringColumn("Key").isEqualTo(key));
     }
+
+//    public void test2() {
+//        System.out.println(dataframe.columns.SubjectID);
+//    }
 
 }

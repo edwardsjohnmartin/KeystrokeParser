@@ -21,8 +21,6 @@ public class Node {
         return _nextId++;
     }
 
-    // temporal information
-//    public int tid = -1;
     public Node tparent = null;
     public Node tchild = null;
     public int numInserts = 0;
@@ -31,7 +29,6 @@ public class Node {
     public int id;
     public final String label;
     public int startIndex;
-//    public int endIndex;
     public int length;
     public final List<Node> children;
     public Node parent = null;
@@ -51,7 +48,6 @@ public class Node {
             throw new RuntimeException("Unexpected start/end indices");
         }
         this.startIndex = startIndex;
-//        this.endIndex = endIndex;
         this.length = length;
         this.children = new ArrayList<>(children);
         String text = null;
@@ -75,7 +71,6 @@ public class Node {
         this.id = copy.id;
         this.label = copy.label;
         this.startIndex = copy.startIndex;
-//        this.endIndex = copy.endIndex;
         this.length = copy.length;
         this.children = new ArrayList<>();
         this.text = copy.text;
@@ -201,7 +196,6 @@ public class Node {
         for (Node child : children) {
             id = child.resetIdsImpl(id);
         }
-//        this.tparentId = this.id;
         this.id = id;
         return id + 1;
     }
@@ -305,7 +299,6 @@ public class Node {
 
     public void setTparent(Node tparent) {
         this.tparent = tparent;
-//        this.tparentId = tparent.getId();
     }
 
     public boolean isReference() {
@@ -417,11 +410,9 @@ public class Node {
                 + " | End: " + this.getEndInclusiveIndex()
                 + " | Inserts: " + this.numInserts
                 + " | Deletes: " + this.numDeletes;
-//                + " | tid: " + tid;
 
         reString += " | tpid: ";
         if (this.tparent != null) {
-//            reString += tparent.tid;
             reString += tparent.id;
         } else {
             reString += "NaN";
@@ -429,7 +420,6 @@ public class Node {
 
         reString += " | tchild: ";
         if (this.tchild != null) {
-//            reString += tchild.tid;
             reString += tchild.id;
         } else {
             reString += "NaN";
