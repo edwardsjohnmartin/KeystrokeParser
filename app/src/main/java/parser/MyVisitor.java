@@ -18,7 +18,8 @@ public class MyVisitor {
 
         // skip EOFs
         if ("<EOF>".equals(ctx.getText())) {
-            return null;
+//            return null;
+            return new Node(Trees.NODE_TYPE_EMPTY, 0, src.length(), new ArrayList<>(), src);
         }
 
         Node n = toSimpleTreeImpl(ctx, label, startIndex, stopIndex, length, src);
@@ -64,12 +65,12 @@ public class MyVisitor {
                     childStartIndex = childStopIndex;
                 }
 
-                final Node childNode = new Node(childLabel, childStartIndex, childStopIndex, child.toString().length(),
+                final Node childNode = new Node(childLabel, childStartIndex, child.toString().length(),
                         new ArrayList<>(), src);
                 children.add(childNode);
             }
         }
 
-        return new Node(parentLabel, parentStartIndex, parentStopIndex, parentLength, children, src);
+        return new Node(parentLabel, parentStartIndex, parentLength, children, src);
     }
 }

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import parser.antlr.PythonParser;
 import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
 
@@ -14,7 +15,7 @@ public class Reconstruction {
     public int length;
 
     public List<Node> trees = new ArrayList<>();
-    public List<String> errors = new ArrayList<>();
+//    public List<String> errors = new ArrayList<>();
     public List<String> codeStates = new ArrayList<>();
 
     private TemporalHierarchy correspondance = new TemporalHierarchy();
@@ -53,21 +54,30 @@ public class Reconstruction {
 
     private void createCorrespondance(int i, String insertText, String deleteText) {
 
-        Node tree = null;
         String errorMessage = null;
+        String src = codeStates.get(codeStates.size() - 1);
+        Node tree;
         try {
-            String src = codeStates.get(codeStates.size() - 1);
-            tree = MyVisitor.toSimpleTree(Parser.createTree(src), src);
-        } catch (RuntimeException parseError) {
-            errorMessage = parseError.getMessage();
+            PythonParser.RootContext ctx = Parser.createTree(src);
+            tree = MyVisitor.toSimpleTree(ctx, src);
+        } catch(Exception e) {
+            tree = Trees.NODE_UNCOMPILABLE;
         }
-        this.errors.add(errorMessage);
 
-        correspondance.allCompilable.add(tree != null);
+        if (tree == null) {
+            throw new RuntimeException("Tree is null");
+        }
+
+        correspondance.allCompilable.add(tree != Trees.NODE_UNCOMPILABLE);
         correspondance.temporalCorrespondence(i, this.trees.size(), insertText, deleteText);
-        if (tree != null) {
+        if (tree != Trees.NODE_UNCOMPILABLE) {
             correspondance.temporalHierarchy(tree, this.codeStates);
         }
+
+//        if (tree == null) {
+//            // Tree is empty -- there is no code
+//            tree = new Node(Trees.NODE_TYPE_EMPTY, 0, src.length(), new ArrayList<>(), src);
+//        }
 
 //        // Check for bugs
 //        Node tparent = null;
@@ -110,7 +120,7 @@ public class Reconstruction {
 
             if (tree == null) {
                 System.out.println("```\n" + this.codeStates.get(i) + "\n```");
-                System.out.println(this.errors.get(i));
+//                System.out.println(this.errors.get(i));
                 System.out.println("\n\n\n");
             } else {
                 System.out.println("```\n" + this.codeStates.get(i) + "\n```");

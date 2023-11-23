@@ -11,6 +11,14 @@ import java.util.List;
 public class Trees {
     private final List<Node> trees;
 
+
+    public static final String NODE_TYPE_UNCOMPILABLE = "UNCOMPILABLE";
+    public static final String NODE_TYPE_NO_CHANGE = "NO_CHANGE";
+    public static final String NODE_TYPE_EMPTY = "EMPTY";
+
+    public static final Node NODE_UNCOMPILABLE = new Node(NODE_TYPE_UNCOMPILABLE, -1, -1, new ArrayList<>(), null);
+    public static final Node NODE_NO_CHANGE = new Node(NODE_TYPE_NO_CHANGE, -1, -1, new ArrayList<>(), null);
+
     public Trees(List<Node> trees) {
         this.trees = trees;
     }
@@ -46,13 +54,20 @@ public class Trees {
      * @return
      */
     private static Node findChanged(Node tparent, Node node) {
+        if (tparent.label.equals(Trees.NODE_TYPE_EMPTY) || node.label.equals(Trees.NODE_TYPE_EMPTY)) {
+            return node;
+        }
+
         Node changed = findTreeChanges(tparent, node);
+        if (changed == Trees.NODE_UNCOMPILABLE) {
+            return changed;
+        }
         if (changed == null) {
             // The tree structure didn't change. We need to
             // check for anything that might have moved.
             changed = findWhitespaceChanges(tparent, node);
         }
-        // Changed nodes must have a tparent
+        // Changed nodes must have a tparent unless one of the two nodes is empty
         if (changed != null) {
             while (changed != null && changed.tparent == null) {
                 changed = changed.parent;
@@ -62,7 +77,7 @@ public class Trees {
         // node changed. If it did, graduate the changed node to a common ancestor.
         // This is the only spacing we need to check since if other spacings changed
         // it will be caught in findTreeChanges.
-        if (changed != null) {
+        if (changed != null && changed.tparent.getNext() != null) {
             final int dist = changed.tparent.getNext().startIndex - changed.tparent.startIndex;
             final int dist2 = changed.getNext().startIndex - changed.startIndex;
             if (dist - changed.tparent.length != dist2 - changed.length) {
@@ -133,8 +148,9 @@ public class Trees {
         }
         if (achanged == null) {
             // No children changed. This is possible when the whitespace between children
-            // changes.
-            return null;
+            // changes. It will be caught later in findWhitespaceChanges.
+            // TODO: should this return node?
+            return node;
         }
         return findTreeChanges(achanged, bchanged);
     }
@@ -184,7 +200,7 @@ public class Trees {
                 Node tparent = trees.get(previ);
                 // If the tparent is null (uncompilable), then use the last
                 // compilable snapshot.
-                if (tparent != null) {
+                if (tparent != Trees.NODE_UNCOMPILABLE) {
                     tparenti = previ;
                 } else {
                     tparent = trees.get(tparenti);
@@ -192,10 +208,19 @@ public class Trees {
                 Node node = trees.get(curi);
                 if (node != null) {
                     Node changed = findChanged(tparent, node);
-                    changed.computeNextStartIndex();
-                    prunedTrees.add(changed);
+                    if (node.label.equals(NODE_TYPE_EMPTY)) {
+                        changed = node;
+                    }
+                    // TODO: changed may be null! One way this can happen is to cut code
+                    // to cause an incompilable state and then paste it back.
+                    if (changed == null) {
+                        prunedTrees.add(Trees.NODE_NO_CHANGE);
+                    } else {
+//                        changed.computeNextStartIndex();
+                        prunedTrees.add(changed);
+                    }
                 } else {
-                    prunedTrees.add(null);
+                    prunedTrees.add(Trees.NODE_UNCOMPILABLE);
                 }
             }
         }
@@ -208,20 +233,24 @@ public class Trees {
         for (int i = 0; i < prunedTrees.size(); ++i) {
             Node pruned = prunedTrees.get(i);
             System.out.println("Reconstructing pruned tree " + i);
-            if (pruned == null) {
-                reconTrees.add(null);
+//            if (pruned == null) {
+            if (pruned.label.equals(Trees.NODE_TYPE_UNCOMPILABLE) || pruned.label.equals(Trees.NODE_TYPE_EMPTY)) {
+                reconTrees.add(pruned);
+//            } else if (pruned.label.equals(Trees.NODE_NO_CHANGE)) {
             } else if (pruned.isReference()) {
                 reconTrees.add(pruned);
             } else {
                 // Find the last reconstructed tree
                 int j = 1;
-                Node ref = null;
-                while (ref == null) {
+                Node ref = Trees.NODE_UNCOMPILABLE;
+                while (ref == Trees.NODE_UNCOMPILABLE) {
                     ref = reconTrees.get(reconTrees.size() - j);
                     j++;
                 }
                 Node copy = new Node(ref);
-                copy.replace(pruned);
+                if (!pruned.label.equals(Trees.NODE_TYPE_NO_CHANGE)) {
+                    copy.replace(pruned);
+                }
                 copy.resetIds(ref.getId() + 1);
                 reconTrees.add(copy);
             }

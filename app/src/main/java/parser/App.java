@@ -54,14 +54,23 @@ public class App {
 //        for (String key:dataframe.stringColumn("Key").unique()) {
 //            System.out.println(key);
 //        }
+
+//        String key = "Student10_Assign10_Chessboard.py";
+//        String key = "Student28_Assign13_wordinator.py";
+        String key = "Student12_Assign6_task1.py";
 //        String key = "Student1_Assign12_task1.py";
-        String key = "Student42_Assign7_task2.py";
+//        String key = "Student1_Assign12_task1.py";
         Table selection = dataframe.where(dataframe.stringColumn("Key").isEqualTo(key).and(dataframe.stringColumn("EventType").isEqualTo("File.Edit")));
         System.out.println(selection.first(10));
 
         System.out.println("Reconstructing " + key);
         Reconstruction reconstruction = new Reconstruction(selection);
+//        int start = 231, len = 3;
+//        int start = 225, len = 2;
+//        int start = 30, len = 3;
+//        Trees origTrees = new Trees(reconstruction.trees.subList(start, start + len));
         Trees origTrees = new Trees(reconstruction.trees);
+
         origTrees.outputGraphViz("orig.dot");
         Trees prunedTrees = origTrees.prune();
         prunedTrees.outputGraphViz("pruned.dot");

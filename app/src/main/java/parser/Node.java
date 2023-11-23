@@ -39,14 +39,14 @@ public class Node {
     private final String src;
     // The starting character index of the next node. This is used in
     // pruning and reconstruction.
-    public int nextStartIndex = -1;
+//    public int nextStartIndex = -1;
 
-    public Node(String label, int startIndex, int endIndex, int length, List<Node> children, String src) {
+    public Node(String label, int startIndex, int length, List<Node> children, String src) {
         this.id = nextId();
         this.label = label;
-        if (startIndex > endIndex || endIndex-startIndex+1 != length) {
-            throw new RuntimeException("Unexpected start/end indices");
-        }
+//        if (startIndex > endIndex || endIndex-startIndex+1 != length) {
+//            throw new RuntimeException("Unexpected start/end indices");
+//        }
         this.startIndex = startIndex;
         this.length = length;
         this.children = new ArrayList<>(children);
@@ -221,9 +221,9 @@ public class Node {
          */
         public final int offset;
         public ReplacementResult(int startOffset, int lengthOffset) {
-            if (startOffset != 0 && lengthOffset != 0) {
-                throw new RuntimeException("length and startIndex both unexpectedly changed");
-            }
+//            if (startOffset != 0 && lengthOffset != 0) {
+//                throw new RuntimeException("length and startIndex both unexpectedly changed");
+//            }
             if (startOffset == 0 && lengthOffset == 0) {
                 throw new RuntimeException("nothing unexpectedly changed");
             }
@@ -264,6 +264,7 @@ public class Node {
                 if (firstChild && result.startOffset != 0) {
                     // If the start offset of our first child changed then update our start offset.
                     this.startIndex += result.startOffset;
+                    this.length += result.lengthOffset;
                 } else {
                     this.length += result.offset;
                     result = new ReplacementResult(0, result.offset);
@@ -297,9 +298,9 @@ public class Node {
         return (tparent != null) ? tparent.getId() : -1;
     }
 
-    public void setTparent(Node tparent) {
-        this.tparent = tparent;
-    }
+//    public void setTparent(Node tparent) {
+//        this.tparent = tparent;
+//    }
 
     public boolean isReference() {
         return this.reference;
@@ -316,18 +317,18 @@ public class Node {
         }
     }
 
-    public void computeNextStartIndex() {
-        Node n = getNext();
-        if (n != null) {
-            this.nextStartIndex = n.startIndex;
-        } else {
-            this.nextStartIndex = -1;
-        }
-    }
+//    public void computeNextStartIndex() {
+//        Node n = getNext();
+//        if (n != null) {
+//            this.nextStartIndex = n.startIndex;
+//        } else {
+//            this.nextStartIndex = -1;
+//        }
+//    }
 
-    private int getSpaceBeforeNextNode() {
-        return (this.nextStartIndex-this.startIndex)-this.length;
-    }
+//    private int getSpaceBeforeNextNode() {
+//        return (this.nextStartIndex-this.startIndex)-this.length;
+//    }
 
     // -------------------------------------------------------
     // JSON
@@ -344,9 +345,9 @@ public class Node {
         if (this.tparent != null) {
             json.put("tparent", this.tparent.id);
         }
-        if (this.nextStartIndex > -1) {
-            json.put("nextStartIndex", this.nextStartIndex);
-        }
+//        if (this.nextStartIndex > -1) {
+//            json.put("nextStartIndex", this.nextStartIndex);
+//        }
 
         JSONArray jsonChildren = new JSONArray();
         for (Node child : children) {
@@ -381,12 +382,15 @@ public class Node {
     }
 
     private void nodeToDot(StringBuffer buf, String prefix) {
+//        String elabel = example = example.replaceAll("'", "\\\\'").replaceAll("\"", "\\\\\"");
         if (!Objects.equals(label, "Terminal")) {
+            String elabel = label.replaceAll("\"", "\\\\\"");
             buf.append(
-                    String.format("%s%d [label = \"%s\\n%d, %d-%d, tp=%d\"];\n", prefix, id, label, id, startIndex, getEndInclusiveIndex(), getTparentId()));
+                    String.format("%s%d [label = \"%s\\n%d, %d-%d, tp=%d\"];\n", prefix, id, elabel, id, startIndex, getEndInclusiveIndex(), getTparentId()));
         } else {
+            String etext = text.replaceAll("\"", "\\\\\"");
             buf.append(
-                    String.format("%s%d [label = \"%s\\n%d, %d-%d, tp=%d\"];\n", prefix, id, text, id, startIndex, getEndInclusiveIndex(), getTparentId()));
+                    String.format("%s%d [label = \"%s\\n%d, %d-%d, tp=%d\"];\n", prefix, id, etext, id, startIndex, getEndInclusiveIndex(), getTparentId()));
         }
         // if (this.tparent != null) {
         // buf.append(String.format("n%s->n%s [style=dashed]\n", this.id,
