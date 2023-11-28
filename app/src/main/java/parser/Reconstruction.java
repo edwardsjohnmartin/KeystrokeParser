@@ -32,7 +32,12 @@ public class Reconstruction {
         this.codeStates.add(state);
         this.createCorrespondance(0, state, "");
 
+        int j = 0;
         for (Row row : dataframe) {
+            // TODO: remove. For debug.
+            if (j > 77) break;
+            System.out.println("Reconstructing " + j);
+            j++;
             int i = row.getInt("SourceLocation");
             String insertText = row.getString("InsertText");
             String deleteText = row.getString("DeleteText");
@@ -53,15 +58,20 @@ public class Reconstruction {
     }
 
     private void createCorrespondance(int i, String insertText, String deleteText) {
+//        System.out.println("createCorrespondence " + i);
 
         String errorMessage = null;
         String src = codeStates.get(codeStates.size() - 1);
-        Node tree;
+        Node tree = null;
+        PythonParser.RootContext ctx = null;
         try {
-            PythonParser.RootContext ctx = Parser.createTree(src);
-            tree = MyVisitor.toSimpleTree(ctx, src);
+            ctx = Parser.createTree(src);
         } catch(Exception e) {
             tree = Trees.NODE_UNCOMPILABLE;
+        }
+
+        if (ctx != null) {
+            tree = MyVisitor.toSimpleTree(ctx, src);
         }
 
         if (tree == null) {

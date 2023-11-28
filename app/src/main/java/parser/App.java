@@ -26,7 +26,7 @@ public class App {
         final String fileName = fn;
         Table dataframe = ts.readFileTest(fileName);
         // Debug
-        ts.printHeaders(dataframe);
+//        ts.printHeaders(dataframe);
 //        List<String> keys = ts.createKeys(dataframe);
 //        System.out.println("\nUnique keys in file: " + keys.size());
 //        System.out.println("\n");
@@ -61,15 +61,15 @@ public class App {
 //        String key = "Student1_Assign12_task1.py";
 //        String key = "Student1_Assign12_task1.py";
         Table selection = dataframe.where(dataframe.stringColumn("Key").isEqualTo(key).and(dataframe.stringColumn("EventType").isEqualTo("File.Edit")));
-        System.out.println(selection.first(10));
+//        System.out.println(selection.first(10));
 
         System.out.println("Reconstructing " + key);
         Reconstruction reconstruction = new Reconstruction(selection);
-//        int start = 231, len = 3;
-//        int start = 225, len = 2;
-//        int start = 30, len = 3;
+//        int start = 0, len = 3;
 //        Trees origTrees = new Trees(reconstruction.trees.subList(start, start + len));
         Trees origTrees = new Trees(reconstruction.trees);
+
+        System.out.println(reconstruction.codeStates.get(reconstruction.codeStates.size()-1));
 
         origTrees.outputGraphViz("orig.dot");
         Trees prunedTrees = origTrees.prune();

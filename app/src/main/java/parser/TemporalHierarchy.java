@@ -50,11 +50,11 @@ public class TemporalHierarchy {
         this.allIdxInLastSnapshot.add(new ArrayList<>(this.idxInLastSnapshot));
         this.allIdxInLastCompilable.add(new ArrayList<>(this.idxInLastSnapshot));
 
-        if (treeNumber >= 10 && treeNumber <= 15) {
-            int sn = this.allIdxInLastSnapshot.size();
-            List<Integer> lastMap = this.allIdxInLastSnapshot.get(sn-1);
-            System.out.println(String.format("xyz%d (%d) ", treeNumber, lastMap.size()) + lastMap);
-        }
+//        if (treeNumber >= 10 && treeNumber <= 15) {
+//            int sn = this.allIdxInLastSnapshot.size();
+//            List<Integer> lastMap = this.allIdxInLastSnapshot.get(sn-1);
+//            System.out.println(String.format("xyz%d (%d) ", treeNumber, lastMap.size()) + lastMap);
+//        }
 
         // exit if the last tree was compilable
         if (this.allCompilable.size() > 1 && (this.allCompilable.get(this.allCompilable.size() - 2))) {
@@ -194,7 +194,7 @@ public class TemporalHierarchy {
         // when the previous ast was created
         int ll = -2;
         while (ll >= -allCompilable.size() && !allCompilable.get(allCompilable.size()+ll)) ll--;
-        int[] indices = this.prev_start_end(cur.startIndex, cur.startIndex + cur.length,
+        int[] indices = prev_start_end(cur.startIndex, cur.startIndex + cur.length,
                 this.allIdxInLastCompilable.get(this.allIdxInLastCompilable.size() - 1), codeStates.get(codeStates.size()+ll));
         int curStartInPrevCoords = indices[0];
         int curEndInPrevCoords = indices[1];
@@ -268,10 +268,9 @@ public class TemporalHierarchy {
     /* Return a tuple of (start, end) */
     private int[] prev_start_end(int start, int end, List<Integer> idxInLastSnapshot, String codeState) {
         int n = idxInLastSnapshot.size();
-        // let i: number = node.start;
-        // let j: number = node.end - 1; // node.end is one past the last character, so get the last character
         int i = start;
-        int j = end - 1; // node.end is one past the last character, so get the last character
+        // end inclusive
+        int j = end - 1;
         // Iterate past newly-added characters to the beginning then the end of the node
         while (idxInLastSnapshot.get(i) == -1 && i < j) {
             i += 1;
@@ -297,6 +296,9 @@ public class TemporalHierarchy {
             // represented in the start/end of the previous node.
             while (Character.isWhitespace(codeState.charAt(prev_start)) && prev_start < prev_end_minus_one) {
                 prev_start++;
+            }
+            if (prev_end_minus_one >= codeState.length()) {
+                throw new RuntimeException("prev_end_minus_one is outside bounds");
             }
             while (Character.isWhitespace(codeState.charAt(prev_end_minus_one)) && prev_start < prev_end_minus_one) {
                 prev_end_minus_one--;
